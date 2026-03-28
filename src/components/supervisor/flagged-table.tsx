@@ -1,22 +1,12 @@
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/providers/language-provider';
-import { RiskBadge } from '@/components/shared/risk-badge';
 import { STATUS_COLORS } from '@/lib/constants';
 import type { RiskLevel, HouseholdStatus } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, MapPin, Calendar, User2, Building2 } from 'lucide-react';
 import Link from 'next/link';
 
 export interface FlaggedHousehold {
@@ -36,19 +26,23 @@ interface FlaggedTableProps {
   loading?: boolean;
 }
 
+const RISK_STYLES: Record<RiskLevel, { bg: string; text: string; dot: string }> = {
+  low: { bg: 'bg-emerald-50', text: 'text-emerald-700', dot: 'bg-emerald-500' },
+  moderate: { bg: 'bg-amber-50', text: 'text-amber-700', dot: 'bg-amber-500' },
+  high: { bg: 'bg-orange-50', text: 'text-orange-700', dot: 'bg-orange-500' },
+  critical: { bg: 'bg-red-50', text: 'text-red-700', dot: 'bg-red-500' },
+};
+
 export function FlaggedTable({ households, loading }: FlaggedTableProps) {
   const { t, locale } = useLanguage();
 
   if (loading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">{t('dashboard.flaggedHouseholds')}</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <Card className="border-0 shadow-sm bg-white">
+        <CardContent className="p-5">
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-12 bg-muted animate-pulse rounded" />
+              <div key={i} className="h-16 bg-muted animate-pulse rounded-lg" />
             ))}
           </div>
         </CardContent>
@@ -58,9 +52,12 @@ export function FlaggedTable({ households, loading }: FlaggedTableProps) {
 
   if (households.length === 0) {
     return (
-      <Card className="bg-emerald-50 border-emerald-200">
+      <Card className="border-0 shadow-sm bg-gradient-to-br from-emerald-50 to-white">
         <CardContent className="p-6 text-center">
-          <p className="text-emerald-700 font-medium">
+          <div className="flex items-center justify-center size-12 rounded-xl bg-emerald-100 mx-auto mb-3">
+            <Building2 className="size-6 text-emerald-600" />
+          </div>
+          <p className="text-emerald-700 font-medium text-sm">
             {t('emptyStates.flagged')}
           </p>
         </CardContent>
@@ -77,118 +74,82 @@ export function FlaggedTable({ households, loading }: FlaggedTableProps) {
   };
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base">{t('dashboard.flaggedHouseholds')}</CardTitle>
-      </CardHeader>
-      <CardContent className="px-0">
-        {/* Desktop Table */}
-        <div className="hidden md:block overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t('dashboard.householdCode')}</TableHead>
-                <TableHead>{t('dashboard.area')}</TableHead>
-                <TableHead className="text-center">{t('dashboard.riskScore')}</TableHead>
-                <TableHead>{t('dashboard.lastVisit')}</TableHead>
-                <TableHead>{t('dashboard.chw')}</TableHead>
-                <TableHead>{t('dashboard.status')}</TableHead>
-                <TableHead className="w-12"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {households.map((household) => {
-                const areaName = locale === 'ne' ? household.area_name_ne : household.area_name;
-                const statusColors = STATUS_COLORS[household.status];
-                
-                return (
-                  <TableRow key={household.id} className="group">
-                    <TableCell className="font-medium">{household.code}</TableCell>
-                    <TableCell className="text-muted-foreground">{areaName}</TableCell>
-                    <TableCell className="text-center">
-                      <RiskBadge 
-                        level={household.risk_level} 
-                        score={household.risk_score}
-                        showScore
-                        size="sm"
-                      />
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {formatDate(household.last_visit_date)}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {household.chw_name}
-                    </TableCell>
-                    <TableCell>
-                      <Badge 
-                        variant="outline" 
-                        className={cn('text-xs', statusColors.badge)}
-                      >
-                        {t(`status.${household.status}`)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Link href={`/supervisor/household/${household.id}`}>
-                        <Button 
-                          variant="ghost" 
-                          size="icon-sm"
-                          className="opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
-                      </Link>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </div>
-
-        {/* Mobile Cards */}
-        <div className="md:hidden space-y-3 px-4">
+    <div className="space-y-1 px-1">
+      <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-sage-dark)]/70">
+        {t('dashboard.flaggedHouseholds')}
+      </h2>
+      
+      <Card className="border-0 shadow-sm bg-white overflow-hidden">
+        <CardContent className="p-0 divide-y divide-border/30">
           {households.map((household) => {
             const areaName = locale === 'ne' ? household.area_name_ne : household.area_name;
             const statusColors = STATUS_COLORS[household.status];
-            
+            const riskStyle = RISK_STYLES[household.risk_level];
+
             return (
               <Link 
                 key={household.id} 
                 href={`/supervisor/household/${household.id}`}
                 className="block"
               >
-                <div className="border rounded-lg p-3 hover:bg-accent transition-colors">
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <p className="font-medium">{household.code}</p>
-                      <p className="text-xs text-muted-foreground">{areaName}</p>
+                <div className="p-4 flex items-center gap-4 hover:bg-muted/30 transition-colors">
+                  {/* Risk Indicator */}
+                  <div className={cn(
+                    "flex flex-col items-center justify-center size-14 rounded-xl",
+                    riskStyle.bg
+                  )}>
+                    <span className={cn("text-xl font-bold tabular-nums", riskStyle.text)}>
+                      {household.risk_score}
+                    </span>
+                    <div className={cn("size-1.5 rounded-full mt-0.5", riskStyle.dot)} />
+                  </div>
+
+                  {/* Main Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-bold text-foreground">
+                        {household.code}
+                      </span>
+                      <Badge 
+                        variant="outline" 
+                        className={cn('text-[10px] px-1.5 py-0', statusColors.badge)}
+                      >
+                        {t(`status.${household.status}`)}
+                      </Badge>
                     </div>
-                    <RiskBadge 
-                      level={household.risk_level} 
-                      score={household.risk_score}
-                      showScore
-                      size="sm"
-                    />
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <MapPin className="size-3" />
+                        {areaName}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <User2 className="size-3" />
+                        {household.chw_name}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Calendar className="size-3" />
+                        {formatDate(household.last_visit_date)}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{household.chw_name}</span>
-                    <span>{formatDate(household.last_visit_date)}</span>
-                  </div>
-                  <div className="mt-2 flex items-center justify-between">
-                    <Badge 
-                      variant="outline" 
-                      className={cn('text-xs', statusColors.badge)}
-                    >
-                      {t(`status.${household.status}`)}
-                    </Badge>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+
+                  {/* Risk Level Badge */}
+                  <div className="flex items-center gap-2">
+                    <span className={cn(
+                      "px-2.5 py-1 rounded-full text-xs font-semibold capitalize",
+                      riskStyle.bg,
+                      riskStyle.text
+                    )}>
+                      {household.risk_level}
+                    </span>
+                    <ChevronRight className="size-4 text-muted-foreground" />
                   </div>
                 </div>
               </Link>
             );
           })}
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

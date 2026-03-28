@@ -38,18 +38,20 @@ function SidebarContent({ pathname, t, signOut, onClose }: SidebarContentProps) 
   return (
     <div className="flex flex-col h-full">
       {/* Logo/Brand */}
-      <div className="p-6 border-b border-sidebar-border">
-        <Link href="/supervisor" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-            <span className="text-primary font-bold text-lg">P</span>
+      <div className="p-5 border-b border-sidebar-border">
+        <Link href="/supervisor" className="flex items-center gap-2.5">
+          <div className="w-9 h-9 rounded-xl bg-[var(--color-sage)] flex items-center justify-center shadow-sm">
+            <span className="text-white font-bold text-lg">P</span>
           </div>
-          <span className="font-semibold text-lg">Pahad</span>
+          <div>
+            <span className="font-bold text-foreground text-lg">Pahad</span>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{t('user.supervisor')}</p>
+          </div>
         </Link>
-        <p className="text-xs text-muted-foreground mt-1">{t('user.supervisor')}</p>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-1">
+      <nav className="flex-1 p-3 space-y-1">
         {NAV_ITEMS.map((item) => {
           const isActive = pathname === item.href || 
             (item.href !== '/supervisor' && pathname.startsWith(item.href));
@@ -60,13 +62,13 @@ function SidebarContent({ pathname, t, signOut, onClose }: SidebarContentProps) 
               href={item.href}
               onClick={onClose}
               className={cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200',
                 isActive
-                  ? 'bg-primary/10 text-primary'
-                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                  ? 'bg-[var(--color-sage)]/10 text-[var(--color-sage-dark)]'
+                  : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
               )}
             >
-              <item.icon className="h-4 w-4" />
+              <item.icon className="h-[18px] w-[18px]" />
               {t(item.labelKey)}
             </Link>
           );
@@ -74,19 +76,17 @@ function SidebarContent({ pathname, t, signOut, onClose }: SidebarContentProps) 
       </nav>
 
       {/* User Section */}
-      <div className="p-4 border-t border-sidebar-border">
-        <div className="flex items-center justify-between mb-3">
+      <div className="p-3 border-t border-sidebar-border">
+        <div className="flex items-center justify-between mb-2">
           <UserDisplay showLanguageToggle={false} />
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-full justify-start text-muted-foreground hover:text-foreground"
+        <button
           onClick={handleSignOut}
+          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
         >
-          <LogOut className="h-4 w-4 mr-2" />
+          <LogOut className="h-4 w-4" />
           {t('nav.logout')}
-        </Button>
+        </button>
       </div>
     </div>
   );
@@ -101,17 +101,17 @@ export function SupervisorSidebar() {
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-64 flex-col fixed left-0 top-0 h-screen bg-sidebar border-r border-sidebar-border z-30">
+      <aside className="hidden md:flex w-60 flex-col fixed left-0 top-0 h-screen bg-white border-r border-border/50 z-30">
         <SidebarContent pathname={pathname} t={t} signOut={signOut} />
       </aside>
 
       {/* Mobile Header */}
-      <header className="md:hidden fixed top-0 left-0 right-0 h-14 bg-background border-b border-border z-40 flex items-center justify-between px-4">
+      <header className="md:hidden fixed top-0 left-0 right-0 h-14 bg-white/95 backdrop-blur-md border-b border-border/50 z-40 flex items-center justify-between px-4">
         <Link href="/supervisor" className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
-            <span className="text-primary font-bold">P</span>
+          <div className="w-8 h-8 rounded-lg bg-[var(--color-sage)] flex items-center justify-center">
+            <span className="text-white font-bold text-sm">P</span>
           </div>
-          <span className="font-semibold">Pahad</span>
+          <span className="font-bold text-foreground">Pahad</span>
         </Link>
         <div className="flex items-center gap-2">
           <UserDisplay showLanguageToggle={false} />
@@ -129,7 +129,7 @@ export function SupervisorSidebar() {
       {/* Mobile Sidebar Overlay */}
       {mobileOpen && (
         <div
-          className="md:hidden fixed inset-0 bg-black/50 z-40"
+          className="md:hidden fixed inset-0 bg-black/40 z-40"
           onClick={() => setMobileOpen(false)}
         />
       )}
@@ -137,7 +137,7 @@ export function SupervisorSidebar() {
       {/* Mobile Sidebar */}
       <aside
         className={cn(
-          'md:hidden fixed right-0 top-0 h-screen w-72 bg-sidebar z-50 transform transition-transform duration-200 ease-in-out',
+          'md:hidden fixed right-0 top-0 h-screen w-64 bg-white z-50 transform transition-transform duration-200 ease-in-out shadow-xl',
           mobileOpen ? 'translate-x-0' : 'translate-x-full'
         )}
       >
@@ -150,7 +150,7 @@ export function SupervisorSidebar() {
       </aside>
 
       {/* Spacer for desktop sidebar */}
-      <div className="hidden md:block w-64 flex-shrink-0" />
+      <div className="hidden md:block w-60 flex-shrink-0" />
     </>
   );
 }

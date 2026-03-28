@@ -6,9 +6,11 @@ export function WorkersHeader() {
   const { t } = useLanguage();
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold">{t('workers.title')}</h1>
-      <p className="text-muted-foreground text-sm mt-1">
+    <div className="space-y-1 px-1">
+      <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-sage-dark)]/70">
+        {t('workers.title')}
+      </h2>
+      <p className="text-muted-foreground text-xs mt-0.5">
         {t('workers.subtitle')}
       </p>
     </div>

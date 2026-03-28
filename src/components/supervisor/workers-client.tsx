@@ -1,16 +1,8 @@
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { MapPin, Calendar } from 'lucide-react';
+import { MapPin, Calendar, Activity } from 'lucide-react';
 import { useLanguage } from '@/providers/language-provider';
 
 export interface WorkerData {
@@ -40,133 +32,76 @@ export function WorkersClient({ workers }: WorkersClientProps) {
     });
   };
 
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase();
+  };
+
   if (workers.length === 0) {
     return (
-      <Card className="bg-muted/50">
-        <CardContent className="p-6 text-center">
-          <p className="text-muted-foreground">{t('workers.noActivity')}</p>
+      <Card className="border-0 shadow-sm bg-gradient-to-br from-muted/50 to-white">
+        <CardContent className="p-8 text-center">
+          <div className="flex items-center justify-center size-12 rounded-xl bg-muted mx-auto mb-3">
+            <Activity className="size-6 text-muted-foreground" />
+          </div>
+          <p className="text-muted-foreground text-sm">{t('workers.noActivity')}</p>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base">
-          {t('workers.activeCHWs')}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="px-0">
-        {/* Desktop Table */}
-        <div className="hidden md:block overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t('workers.name')}</TableHead>
-                <TableHead>{t('workers.area')}</TableHead>
-                <TableHead className="text-center">{t('workers.visitsThisMonth')}</TableHead>
-                <TableHead>{t('workers.lastActive')}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {workers.map((worker) => {
-                const areaName = locale === 'ne' ? worker.area_name_ne : worker.area_name;
-                
-                return (
-                  <TableRow key={worker.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage
-                            src={worker.avatar_url || undefined}
-                            alt={worker.name}
-                          />
-                          <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                            {worker.name
-                              .split(' ')
-                              .map((n) => n[0])
-                              .join('')
-                              .slice(0, 2)
-                              .toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-medium">{worker.name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {worker.email}
-                          </p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <span className="flex items-center gap-1 text-muted-foreground">
-                        <MapPin className="h-3 w-3" />
-                        {areaName}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <span className="font-semibold">
-                        {worker.visits_this_month}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="flex items-center gap-1 text-muted-foreground">
-                        <Calendar className="h-3 w-3" />
-                        {formatDate(worker.last_active)}
-                      </span>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </div>
+    <Card className="border-0 shadow-sm bg-white overflow-hidden">
+      <CardContent className="p-0 divide-y divide-border/30">
+        {workers.map((worker) => {
+          const areaName = locale === 'ne' ? worker.area_name_ne : worker.area_name;
+          
+          return (
+            <div key={worker.id} className="p-4 flex items-center gap-4">
+              {/* Avatar */}
+              <Avatar className="size-12 rounded-xl">
+                <AvatarImage src={worker.avatar_url || undefined} alt={worker.name} />
+                <AvatarFallback className="bg-[var(--color-sage)]/10 text-[var(--color-sage-dark)] text-sm font-semibold rounded-xl">
+                  {getInitials(worker.name)}
+                </AvatarFallback>
+              </Avatar>
 
-        {/* Mobile Cards */}
-        <div className="md:hidden space-y-3 px-4">
-          {workers.map((worker) => {
-            const areaName = locale === 'ne' ? worker.area_name_ne : worker.area_name;
-            
-            return (
-              <div
-                key={worker.id}
-                className="border rounded-lg p-3"
-              >
-                <div className="flex items-center gap-3 mb-2">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage
-                      src={worker.avatar_url || undefined}
-                      alt={worker.name}
-                    />
-                    <AvatarFallback className="bg-primary/10 text-primary text-sm">
-                      {worker.name
-                        .split(' ')
-                        .map((n) => n[0])
-                        .join('')
-                        .slice(0, 2)
-                        .toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-medium">{worker.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {areaName}
-                    </p>
+              {/* Main Content */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="font-semibold text-foreground">{worker.name}</span>
+                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <MapPin className="size-3" />
+                    {areaName}
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground truncate">{worker.email}</p>
+              </div>
+
+              {/* Stats */}
+              <div className="flex items-center gap-6">
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-foreground tabular-nums">
+                    {worker.visits_this_month}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide">
+                    {t('workers.visitsThisMonthShort')}
+                  </p>
+                </div>
+                <div className="text-center px-3 py-2 bg-muted/30 rounded-lg">
+                  <div className="flex items-center gap-1 text-muted-foreground">
+                    <Calendar className="size-3" />
+                    <span className="text-xs">{formatDate(worker.last_active)}</span>
                   </div>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">
-                    {worker.visits_this_month} {t('workers.visitsThisMonthShort')}
-                  </span>
-                  <span className="text-muted-foreground">
-                    {formatDate(worker.last_active)}
-                  </span>
-                </div>
               </div>
-            );
-          })}
-        </div>
+            </div>
+          );
+        })}
       </CardContent>
     </Card>
   );
