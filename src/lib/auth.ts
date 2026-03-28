@@ -1,7 +1,82 @@
 // Auth helper functions for Pahad
 
+import { getSupabaseAdminClient } from './supabase/admin';
 import { getSupabaseServerClient } from './supabase/server';
 import type { Role, Profile } from './types';
+
+const ADMIN_EMAILS = new Set(['aeeju15@gmail.com']);
+
+interface AuthUserProfileSeed {
+  id: string;
+  email?: string | null;
+  user_metadata?: {
+    full_name?: string;
+    name?: string;
+    avatar_url?: string;
+  };
+}
+
+/**
+ * Check if the given email is the configured admin email
+ */
+export function isAdminEmail(email: string | undefined | null): boolean {
+  return !!email && ADMIN_EMAILS.has(email.trim().toLowerCase());
+}
+
+export async function ensureAdminProfile(
+  user: AuthUserProfileSeed,
+  existingProfile?: Profile | null
+): Promise<Profile | null> {
+  if (!user.email || !isAdminEmail(user.email)) {
+    return existingProfile ?? null;
+  }
+
+  if (existingProfile?.role === 'supervisor') {
+    return existingProfile;
+  }
+
+  const admin = getSupabaseAdminClient();
+
+  if (existingProfile) {
+    const { data: updatedProfile, error } = await admin
+      .from('profiles')
+      .update({ role: 'supervisor' })
+      .eq('id', user.id)
+      .select()
+      .single();
+
+    if (error || !updatedProfile) {
+      console.error('Failed to elevate admin profile:', error);
+      return null;
+    }
+
+    return updatedProfile as Profile;
+  }
+
+  const fullName = user.user_metadata?.full_name ??
+    user.user_metadata?.name ??
+    user.email.split('@')[0];
+
+  const { data: createdProfile, error } = await admin
+    .from('profiles')
+    .insert({
+      id: user.id,
+      email: user.email.trim().toLowerCase(),
+      full_name: fullName,
+      avatar_url: user.user_metadata?.avatar_url ?? null,
+      role: 'supervisor',
+      area_id: null,
+    })
+    .select()
+    .single();
+
+  if (error || !createdProfile) {
+    console.error('Failed to provision admin profile:', error);
+    return null;
+  }
+
+  return createdProfile as Profile;
+}
 
 export interface AuthResult {
   success: boolean;
@@ -47,6 +122,28 @@ export async function signInWithEmail(
     .select('*')
     .eq('id', data.user.id)
     .single();
+
+  if (isAdminEmail(data.user.email)) {
+    const adminProfile = await ensureAdminProfile(data.user, (profile as Profile | null) ?? null);
+
+    if (!adminProfile) {
+      await supabase.auth.signOut();
+
+      return {
+        success: false,
+        error: 'Profile not found. Contact your administrator.',
+      };
+    }
+
+    return {
+      success: true,
+      user: {
+        id: data.user.id,
+        email: data.user.email!,
+      },
+      profile: adminProfile,
+    };
+  }
 
   if (profileError || !profile) {
     // CRITICAL: Clear the session before returning error

@@ -4,7 +4,7 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import { getRedirectPathForRole } from '@/lib/auth';
+import { ensureAdminProfile, getRedirectPathForRole, isAdminEmail } from '@/lib/auth';
 import { getSupabaseAdminClient } from '@/lib/supabase/admin';
 
 function isLocalDevelopmentOrigin(origin: string) {
@@ -30,6 +30,9 @@ async function provisionDevelopmentProfile(user: {
     user.user_metadata?.name ??
     user.email.split('@')[0];
 
+  // Admin email gets supervisor role
+  const role = isAdminEmail(user.email) ? 'supervisor' : 'chw';
+
   const { data: profile, error } = await admin
     .from('profiles')
     .insert({
@@ -37,7 +40,7 @@ async function provisionDevelopmentProfile(user: {
       email: user.email,
       full_name: fullName,
       avatar_url: user.user_metadata?.avatar_url ?? null,
-      role: 'chw',
+      role,
       area_id: null,
     })
     .select()
@@ -115,6 +118,15 @@ export async function GET(request: Request) {
     // Profile doesn't exist - reject access
     console.error('No profile found for user:', user.id);
 
+    if (isAdminEmail(user.email)) {
+      const adminProfile = await ensureAdminProfile(user);
+
+      if (adminProfile) {
+        const redirectPath = getRedirectPathForRole(adminProfile.role);
+        return NextResponse.redirect(`${origin}${redirectPath}`);
+      }
+    }
+
     if (isLocalDevelopmentOrigin(origin)) {
       const developmentProfile = await provisionDevelopmentProfile(user);
 
@@ -128,7 +140,20 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/login?error=no_account`);
   }
 
+  // Check if admin email needs role elevation
+  // Admin email is treated as supervisor regardless of current role
+  let effectiveRole = profile.role;
+  if (isAdminEmail(user.email) && profile.role !== 'supervisor') {
+    const elevatedProfile = await ensureAdminProfile(user, profile);
+    if (!elevatedProfile) {
+      await supabase.auth.signOut();
+      return NextResponse.redirect(`${origin}/login?error=no_account`);
+    }
+
+    effectiveRole = elevatedProfile.role;
+  }
+
   // Redirect based on role
-  const redirectPath = getRedirectPathForRole(profile.role);
+  const redirectPath = getRedirectPathForRole(effectiveRole);
   return NextResponse.redirect(`${origin}${redirectPath}`);
 }
