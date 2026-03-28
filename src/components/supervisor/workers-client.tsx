@@ -61,19 +61,19 @@ export function WorkersClient({ workers }: WorkersClientProps) {
           const areaName = locale === 'ne' ? worker.area_name_ne : worker.area_name;
           
           return (
-            <div key={worker.id} className="p-4 flex items-center gap-4">
+            <div key={worker.id} className="px-4 py-3 flex items-center gap-3 hover:bg-muted/10 transition-colors">
               {/* Avatar */}
-              <Avatar className="size-12 rounded-xl">
+              <Avatar className="size-10 rounded-lg">
                 <AvatarImage src={worker.avatar_url || undefined} alt={worker.name} />
-                <AvatarFallback className="bg-[var(--color-sage)]/10 text-[var(--color-sage-dark)] text-sm font-semibold rounded-xl">
+                <AvatarFallback className="bg-[var(--color-sage)]/10 text-[var(--color-sage-dark)] text-xs font-semibold rounded-lg">
                   {getInitials(worker.name)}
                 </AvatarFallback>
               </Avatar>
 
               {/* Main Content */}
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="font-semibold text-foreground">{worker.name}</span>
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="font-semibold text-foreground text-sm">{worker.name}</span>
                   <span className="flex items-center gap-1 text-xs text-muted-foreground">
                     <MapPin className="size-3" />
                     {areaName}
@@ -83,20 +83,18 @@ export function WorkersClient({ workers }: WorkersClientProps) {
               </div>
 
               {/* Stats */}
-              <div className="flex items-center gap-6">
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-foreground tabular-nums">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[var(--color-sage)]/10 rounded-lg">
+                  <span className="text-sm font-semibold text-[var(--color-sage-dark)] tabular-nums">
                     {worker.visits_this_month}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide">
+                  </span>
+                  <span className="text-[10px] text-muted-foreground uppercase tracking-wide">
                     {t('workers.visitsThisMonthShort')}
-                  </p>
+                  </span>
                 </div>
-                <div className="text-center px-3 py-2 bg-muted/30 rounded-lg">
-                  <div className="flex items-center gap-1 text-muted-foreground">
-                    <Calendar className="size-3" />
-                    <span className="text-xs">{formatDate(worker.last_active)}</span>
-                  </div>
+                <div className="flex items-center gap-1 text-muted-foreground">
+                  <Calendar className="size-3" />
+                  <span className="text-xs">{formatDate(worker.last_active)}</span>
                 </div>
               </div>
             </div>

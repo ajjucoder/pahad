@@ -26,11 +26,11 @@ interface FlaggedTableProps {
   loading?: boolean;
 }
 
-const RISK_STYLES: Record<RiskLevel, { bg: string; text: string; dot: string }> = {
-  low: { bg: 'bg-emerald-50', text: 'text-emerald-700', dot: 'bg-emerald-500' },
-  moderate: { bg: 'bg-amber-50', text: 'text-amber-700', dot: 'bg-amber-500' },
-  high: { bg: 'bg-orange-50', text: 'text-orange-700', dot: 'bg-orange-500' },
-  critical: { bg: 'bg-red-50', text: 'text-red-700', dot: 'bg-red-500' },
+const RISK_STYLES: Record<RiskLevel, { bg: string; text: string; border: string; dot: string }> = {
+  low: { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', dot: 'bg-emerald-500' },
+  moderate: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', dot: 'bg-amber-500' },
+  high: { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200', dot: 'bg-orange-500' },
+  critical: { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200', dot: 'bg-red-500' },
 };
 
 export function FlaggedTable({ households, loading }: FlaggedTableProps) {
@@ -42,7 +42,7 @@ export function FlaggedTable({ households, loading }: FlaggedTableProps) {
         <CardContent className="p-5">
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-16 bg-muted animate-pulse rounded-lg" />
+              <div key={i} className="h-14 bg-muted animate-pulse rounded-lg" />
             ))}
           </div>
         </CardContent>
@@ -92,27 +92,16 @@ export function FlaggedTable({ households, loading }: FlaggedTableProps) {
                 href={`/supervisor/household/${household.id}`}
                 className="block"
               >
-                <div className="p-4 flex items-center gap-4 hover:bg-muted/30 transition-colors">
-                  {/* Risk Indicator */}
-                  <div className={cn(
-                    "flex flex-col items-center justify-center size-14 rounded-xl",
-                    riskStyle.bg
-                  )}>
-                    <span className={cn("text-xl font-bold tabular-nums", riskStyle.text)}>
-                      {household.risk_score}
-                    </span>
-                    <div className={cn("size-1.5 rounded-full mt-0.5", riskStyle.dot)} />
-                  </div>
-
+                <div className="px-4 py-3 flex items-center gap-3 hover:bg-muted/20 transition-colors">
                   {/* Main Content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="font-bold text-foreground">
+                      <span className="font-semibold text-foreground text-sm">
                         {household.code}
                       </span>
                       <Badge 
                         variant="outline" 
-                        className={cn('text-[10px] px-1.5 py-0', statusColors.badge)}
+                        className={cn('text-[10px] px-1.5 py-0 h-4', statusColors.badge)}
                       >
                         {t(`status.${household.status}`)}
                       </Badge>
@@ -133,16 +122,19 @@ export function FlaggedTable({ households, loading }: FlaggedTableProps) {
                     </div>
                   </div>
 
-                  {/* Risk Level Badge */}
-                  <div className="flex items-center gap-2">
-                    <span className={cn(
-                      "px-2.5 py-1 rounded-full text-xs font-semibold capitalize",
+                  {/* Risk Indicator */}
+                  <div className="flex items-center gap-3">
+                    <div className={cn(
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-lg border",
                       riskStyle.bg,
-                      riskStyle.text
+                      riskStyle.border
                     )}>
-                      {household.risk_level}
-                    </span>
-                    <ChevronRight className="size-4 text-muted-foreground" />
+                      <div className={cn("size-2 rounded-full", riskStyle.dot)} />
+                      <span className={cn("text-sm font-semibold tabular-nums", riskStyle.text)}>
+                        {household.risk_score}
+                      </span>
+                    </div>
+                    <ChevronRight className="size-4 text-muted-foreground/60" />
                   </div>
                 </div>
               </Link>
