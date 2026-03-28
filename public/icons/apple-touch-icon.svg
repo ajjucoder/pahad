@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" width="180" height="180">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#5B7553;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3D5235;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="180" height="180" rx="36" fill="url(#bg)"/>
+  <!-- Mountain symbol (Pahad means mountain in Nepali) -->
+  <g fill="#FAFAF5">
+    <!-- Main mountain -->
+    <polygon points="90,42 38,122 142,122" fill="#FAFAF5" opacity="0.9"/>
+    <!-- Secondary mountain -->
+    <polygon points="65,70 28,122 102,122" fill="#FAFAF5" opacity="0.6"/>
+    <!-- Sun accent -->
+    <circle cx="135" cy="52" r="17" fill="#D4A574" opacity="0.9"/>
+  </g>
+</svg>
