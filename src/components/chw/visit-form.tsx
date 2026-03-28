@@ -2,10 +2,11 @@
 
 import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle, User, Calendar, Users, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -27,6 +28,11 @@ type DraftResponses = Partial<Record<keyof VisitResponses, SignalValue>>;
 export function VisitForm({ households }: VisitFormProps) {
   const router = useRouter();
   const { t, locale } = useLanguage();
+  
+  // Patient Information
+  const [patientName, setPatientName] = useState('');
+  const [patientAge, setPatientAge] = useState('');
+  const [patientGender, setPatientGender] = useState('');
   
   const [selectedHousehold, setSelectedHousehold] = useState<string>('');
   const [responses, setResponses] = useState<DraftResponses>({});
@@ -68,13 +74,20 @@ export function VisitForm({ households }: VisitFormProps) {
         return acc;
       }, {} as VisitResponses);
 
+      // Prepend patient info to notes if any patient fields are filled
+      let finalNotes = notes;
+      if (patientName || patientAge || patientGender) {
+        const patientInfo = `[Patient: Name: ${patientName || 'N/A'}, Age: ${patientAge || 'N/A'}, Gender: ${patientGender || 'N/A'}]`;
+        finalNotes = notes ? `${patientInfo}\n\n${notes}` : patientInfo;
+      }
+
       const res = await fetch('/api/score', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           household_id: selectedHousehold,
           responses: completedResponses,
-          notes: notes || undefined,
+          notes: finalNotes || undefined,
         }),
       });
 
@@ -99,6 +112,9 @@ export function VisitForm({ households }: VisitFormProps) {
   };
 
   const handleReset = () => {
+    setPatientName('');
+    setPatientAge('');
+    setPatientGender('');
     setSelectedHousehold('');
     setResponses({});
     setNotes('');
@@ -169,10 +185,70 @@ export function VisitForm({ households }: VisitFormProps) {
     <div className="space-y-6">
       <DisclaimerBanner variant="compact" className="text-center mb-4" />
 
+      {/* Patient Information */}
+      <Card className="bg-muted/30 border-muted">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <User className="h-4 w-4 text-primary" />
+            Patient Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="patientName" className="text-sm">
+                Full Name
+              </Label>
+              <Input
+                id="patientName"
+                value={patientName}
+                onChange={(e) => setPatientName(e.target.value)}
+                placeholder="Enter patient name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="patientAge" className="text-sm flex items-center gap-1">
+                <Calendar className="h-3 w-3" />
+                Age
+              </Label>
+              <Input
+                id="patientAge"
+                type="number"
+                min="0"
+                max="150"
+                value={patientAge}
+                onChange={(e) => setPatientAge(e.target.value)}
+                placeholder="Years"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="patientGender" className="text-sm flex items-center gap-1">
+                <Users className="h-3 w-3" />
+                Gender
+              </Label>
+              <Select value={patientGender} onValueChange={setPatientGender}>
+                <SelectTrigger id="patientGender">
+                  <SelectValue placeholder="Select gender" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Male">Male</SelectItem>
+                  <SelectItem value="Female">Female</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
+                  <SelectItem value="Prefer not to say">Prefer not to say</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Household Selection */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">{t('visit.selectHousehold') || 'Select Household'}</CardTitle>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Home className="h-4 w-4 text-primary" />
+            {t('visit.selectHousehold') || 'Select Household'}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <Select value={selectedHousehold} onValueChange={setSelectedHousehold}>
@@ -183,15 +259,19 @@ export function VisitForm({ households }: VisitFormProps) {
               {households.map((hh) => {
                 const areaDisplay = hh.area_name ? (locale === 'ne' ? hh.area_name_ne : hh.area_name) : null;
                 return (
-                  <SelectItem key={hh.id} value={hh.id}>
-                    <span className="flex items-center gap-2">
-                      <span className="font-medium">{hh.code}</span>
+                  <SelectItem key={hh.id} value={hh.id} className="py-3">
+                    <div className="flex flex-col items-start gap-0.5">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-primary">{hh.code}</span>
+                        <span className="text-muted-foreground">·</span>
+                        <span className="font-medium">{hh.head_name}</span>
+                      </div>
                       {areaDisplay && (
-                        <span className="text-muted-foreground text-xs">
-                          · {areaDisplay}
+                        <span className="text-xs text-muted-foreground pl-0">
+                          {areaDisplay}
                         </span>
                       )}
-                    </span>
+                    </div>
                   </SelectItem>
                 );
               })}
@@ -200,20 +280,27 @@ export function VisitForm({ households }: VisitFormProps) {
         </CardContent>
       </Card>
 
-      <Card className="sticky top-4 z-10 border-primary/15 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/85">
-        <CardContent className="p-4 space-y-3">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-sm font-medium">{t('visit.progressTitle') || 'Screening progress'}</p>
+      <Card className="sticky top-4 z-10 border-primary/20 bg-gradient-to-r from-background to-muted/30 backdrop-blur supports-[backdrop-filter]:bg-background/90 shadow-sm">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex-1">
+              <p className="text-sm font-semibold mb-1">{t('visit.progressTitle') || 'Screening Progress'}</p>
               <p className="text-xs text-muted-foreground">
-                {answeredCount} / {SIGNAL_KEYS.length} answered
+                {answeredCount} of {SIGNAL_KEYS.length} questions answered
               </p>
             </div>
-            <span className="text-xs font-medium text-muted-foreground">
-              {Math.round(progressValue)}%
-            </span>
+            <div className="flex items-center gap-3">
+              <span className={cn(
+                "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold",
+                progressValue === 100 
+                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" 
+                  : "bg-primary/10 text-primary"
+              )}>
+                {Math.round(progressValue)}%
+              </span>
+            </div>
           </div>
-          <Progress value={progressValue} className="h-2" />
+          <Progress value={progressValue} className="h-2 mt-3" />
         </CardContent>
       </Card>
 
