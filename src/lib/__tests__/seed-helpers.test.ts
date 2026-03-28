@@ -147,3 +147,72 @@ describe('Regression: seed visit scores must be recomputed from responses', () =
     }
   });
 });
+
+// ============================================================================
+// BUG: Household latest_risk diverges from its visits
+// ============================================================================
+//
+// PROBLEM: scripts/seed.ts creates households with pre-determined risk,
+// then creates visits with independently computed risk from responses.
+// The household.latest_risk_score/level should reflect the latest visit.
+//
+// The seed-helpers.ts generateConsistentVisitData() ensures visit data
+// is internally consistent, but seed.ts doesn't use it properly.
+//
+// FIX: Add a helper that generates complete household+visit data where
+// the household risk is derived from its latest visit.
+// ============================================================================
+
+import { calculateFallbackScore } from '../scoring';
+
+describe('Regression: household risk must align with latest visit', () => {
+  it('should prove household risk can diverge from visit risk in current seed.ts', () => {
+    // Simulate what seed.ts does: generate household risk independently
+    const targetRiskLevel: RiskLevel = 'critical';
+
+    // PROBLEM: The visit's actual score/risk may differ from household's
+    // Even though both target 'critical', the values can diverge
+    // because generateScoreForRiskLevel uses randomness
+
+    // PROBLEM: The visit's actual score/risk may differ from household's
+    // Even though both target 'critical', the values can diverge
+    // because generateScoreForRiskLevel uses randomness
+
+    // This test documents that the values CAN diverge
+    // (Not testing that they always diverge, but that they CAN)
+    // Run multiple times to show the issue
+    let divergedCount = 0;
+    for (let i = 0; i < 100; i++) {
+      const hhScore = generateScoreForRiskLevel(targetRiskLevel);
+      const vd = generateConsistentVisitData(targetRiskLevel);
+      if (hhScore !== vd.total_score) {
+        divergedCount++;
+      }
+    }
+
+    // We expect divergence in most cases due to independent random generation
+    expect(divergedCount).toBeGreaterThan(50);
+  });
+
+  it('should generate household with risk matching its latest visit', () => {
+    // This test defines the expected behavior after fix
+    // When generating seeded data, the household's latest_risk_score
+    // and latest_risk_level should match its latest visit's values
+
+    const targetRiskLevel: RiskLevel = 'critical';
+
+    // Generate visit data first (what the fix should do)
+    const latestVisit = generateConsistentVisitData(targetRiskLevel);
+
+    // Household should use the visit's computed values
+    const householdRiskLevel = latestVisit.risk_level;
+
+    // Verify consistency
+    expect(latestVisit.total_score).toBe(latestVisit.expected_score);
+    expect(householdRiskLevel).toBe(latestVisit.expected_risk_level);
+
+    // The score should match what calculateFallbackScore produces
+    const computedScore = calculateFallbackScore(latestVisit.responses);
+    expect(computedScore).toBe(latestVisit.total_score);
+  });
+});

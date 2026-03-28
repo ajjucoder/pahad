@@ -79,6 +79,26 @@ ALTER TABLE visits ENABLE ROW LEVEL SECURITY;
 ALTER TABLE areas ENABLE ROW LEVEL SECURITY;
 
 -- ============================================================
+-- SECURITY DEFINER HELPER FUNCTION
+-- Avoids recursive RLS policy issues by checking supervisor role
+-- without triggering RLS on profiles table
+-- ============================================================
+CREATE OR REPLACE FUNCTION public.is_supervisor()
+RETURNS boolean
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM profiles
+    WHERE id = auth.uid()
+      AND role = 'supervisor'
+  );
+$$;
+
+-- ============================================================
 -- AREAS: authenticated users can read (public reference data)
 -- ============================================================
 CREATE POLICY "areas_select_authenticated" ON areas
@@ -93,7 +113,7 @@ CREATE POLICY "profiles_select_own" ON profiles
 
 CREATE POLICY "profiles_select_supervisor" ON profiles
   FOR SELECT TO authenticated
-  USING (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role = 'supervisor'));
+  USING (public.is_supervisor());
 
 -- CRITICAL: No INSERT/UPDATE/DELETE policies for profiles.
 -- profiles.role is immutable via client. Only service_role can write profiles.
@@ -108,14 +128,14 @@ CREATE POLICY "households_select_chw" ON households
 
 CREATE POLICY "households_select_supervisor" ON households
   FOR SELECT TO authenticated
-  USING (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role = 'supervisor'));
+  USING (public.is_supervisor());
 
 -- Supervisor can update ONLY status column (not reassign CHW, change risk, etc.)
 -- DB-ENFORCED via trigger -- not just API-layer trust
 CREATE POLICY "households_update_supervisor_status" ON households
   FOR UPDATE TO authenticated
-  USING (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role = 'supervisor'))
-  WITH CHECK (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role = 'supervisor'));
+  USING (public.is_supervisor())
+  WITH CHECK (public.is_supervisor());
 
 -- TRIGGER: reject any supervisor UPDATE that touches columns other than status
 CREATE OR REPLACE FUNCTION enforce_supervisor_status_only()
@@ -168,6 +188,6 @@ CREATE POLICY "visits_insert_chw" ON visits
 
 CREATE POLICY "visits_select_supervisor" ON visits
   FOR SELECT TO authenticated
-  USING (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role = 'supervisor'));
+  USING (public.is_supervisor());
 
 -- No UPDATE or DELETE policies on visits for anyone (visits are immutable records)

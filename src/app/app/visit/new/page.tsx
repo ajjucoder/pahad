@@ -5,7 +5,6 @@ import { Loader2 } from 'lucide-react';
 import { VisitForm } from '@/components/chw/visit-form';
 import { useLanguage } from '@/providers/language-provider';
 import { useAuth } from '@/providers/auth-provider';
-import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import type { Household } from '@/lib/types';
 
 export default function NewVisitPage() {
@@ -28,27 +27,24 @@ export default function NewVisitPage() {
       return;
     }
 
-    // Capture profile.id for use in async function (type narrowing doesn't carry into closures)
-    const chwId = profile.id;
+    // Clear any stale error from previous renders before fetching
+    setError(null);
+    setLoading(true);
 
     async function fetchHouseholds() {
-      const supabase = getSupabaseBrowserClient();
-
       try {
-        const { data, error: fetchError } = await supabase
-          .from('households')
-          .select('*')
-          .eq('assigned_chw_id', chwId)
-          .order('code', { ascending: true });
+        const response = await fetch('/api/households', { cache: 'no-store' });
 
-        if (fetchError) {
-          throw fetchError;
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.error || 'Failed to load households');
         }
 
-        setHouseholds(data as Household[]);
+        const data = await response.json();
+        setHouseholds(data.households as Household[]);
       } catch (err) {
         console.error('Error fetching households:', err);
-        setError('Failed to load households');
+        setError(err instanceof Error ? err.message : 'Failed to load households');
       } finally {
         setLoading(false);
       }
