@@ -12,6 +12,13 @@ function isLocalDevelopmentOrigin(origin: string) {
     (origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1'));
 }
 
+function isSchemaMissingError(error: { code?: string; message?: string } | null): boolean {
+  // PGRST205: Could not find table in schema cache
+  // PGRST116: Not found (could indicate missing table in some cases)
+  return error?.code === 'PGRST205' ||
+    (error?.message?.includes('Could not find the table') ?? false);
+}
+
 async function provisionDevelopmentProfile(user: {
   id: string;
   email?: string;
@@ -47,7 +54,17 @@ async function provisionDevelopmentProfile(user: {
     .single();
 
   if (error || !profile) {
-    console.error('Failed to provision development profile:', error);
+    // Check if this is a schema missing error and provide helpful guidance
+    if (isSchemaMissingError(error)) {
+      console.error(
+        '❌ Database schema not set up!\n' +
+        '   Run scripts/schema.sql in Supabase SQL Editor to create tables,\n' +
+        '   then run: npm run db:seed\n' +
+        '   Error details:', error
+      );
+    } else {
+      console.error('Failed to provision development profile:', error);
+    }
     return null;
   }
 

@@ -23,6 +23,16 @@ export function isAdminEmail(email: string | undefined | null): boolean {
   return !!email && ADMIN_EMAILS.has(email.trim().toLowerCase());
 }
 
+/**
+ * Check if error indicates missing database schema/tables
+ */
+function isSchemaMissingError(error: { code?: string; message?: string } | null): boolean {
+  // PGRST205: Could not find table in schema cache
+  // PGRST116: Not found (could indicate missing table in some cases)
+  return error?.code === 'PGRST205' ||
+    (error?.message?.includes('Could not find the table') ?? false);
+}
+
 export async function ensureAdminProfile(
   user: AuthUserProfileSeed,
   existingProfile?: Profile | null
@@ -46,7 +56,17 @@ export async function ensureAdminProfile(
       .single();
 
     if (error || !updatedProfile) {
-      console.error('Failed to elevate admin profile:', error);
+      // Check if this is a schema missing error and provide helpful guidance
+      if (isSchemaMissingError(error)) {
+        console.error(
+          '❌ Database schema not set up!\n' +
+          '   Run scripts/schema.sql in Supabase SQL Editor to create tables,\n' +
+          '   then run: npm run db:seed\n' +
+          '   Error details:', error
+        );
+      } else {
+        console.error('Failed to elevate admin profile:', error);
+      }
       return null;
     }
 
@@ -71,7 +91,17 @@ export async function ensureAdminProfile(
     .single();
 
   if (error || !createdProfile) {
-    console.error('Failed to provision admin profile:', error);
+    // Check if this is a schema missing error and provide helpful guidance
+    if (isSchemaMissingError(error)) {
+      console.error(
+        '❌ Database schema not set up!\n' +
+        '   Run scripts/schema.sql in Supabase SQL Editor to create tables,\n' +
+        '   then run: npm run db:seed\n' +
+        '   Error details:', error
+      );
+    } else {
+      console.error('Failed to provision admin profile:', error);
+    }
     return null;
   }
 

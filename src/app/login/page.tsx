@@ -55,7 +55,17 @@ function LoginContent() {
   // Set error from URL
   useEffect(() => {
     if (urlError === 'no_account') {
-      setError(t('auth.errors.noAccount'));
+      // In development, provide more context about setup requirements
+      if (process.env.NODE_ENV === 'development') {
+        setError(
+          'Account not found. If this is a new setup, ensure you have:\n' +
+          '1. Run scripts/schema.sql in Supabase SQL Editor\n' +
+          '2. Run npm run db:seed to create demo users\n' +
+          '3. Use demo accounts: chw1@demo.com / demo1234'
+        );
+      } else {
+        setError(t('auth.errors.noAccount'));
+      }
     }
   }, [urlError, t]);
 
@@ -163,7 +173,7 @@ function LoginContent() {
                     transition={{ duration: 0.2 }}
                   >
                     <Alert variant="destructive" className="border-red-200 bg-red-50 text-red-800">
-                      <AlertDescription>{error}</AlertDescription>
+                      <AlertDescription className="whitespace-pre-line">{error}</AlertDescription>
                     </Alert>
                   </motion.div>
                 )}
