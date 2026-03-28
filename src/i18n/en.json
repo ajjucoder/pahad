@@ -1,0 +1,275 @@
+{
+  "app": {
+    "name": "Pahad",
+    "tagline": "Community Mental Health Screening"
+  },
+  "landing": {
+    "hero": {
+      "title": "Proactive Mental Health Support for Nepal",
+      "subtitle": "A mobile decision-support tool for community health workers to identify early warning signs and connect households with care.",
+      "cta": "Get Started"
+    },
+    "problem": {
+      "title": "The Challenge",
+      "description": "In Nepal, mental health struggles are often detected late—only after crisis. Community health workers visit households regularly but have no structured tool to record warning signs and escalate concerns early.",
+      "stat1": "1 in 4",
+      "stat1Label": "People experience mental health issues",
+      "stat2": "90%",
+      "stat2Label": "Receive no treatment in low-income countries"
+    },
+    "howItWorks": {
+      "title": "How It Works",
+      "step1": {
+        "title": "Visit",
+        "description": "CHWs conduct regular home visits and observe behavioral signals"
+      },
+      "step2": {
+        "title": "Screen",
+        "description": "Record 8 evidence-based warning signs using a simple mobile form"
+      },
+      "step3": {
+        "title": "Flag",
+        "description": "AI-powered risk scoring identifies households needing follow-up"
+      }
+    },
+    "features": {
+      "title": "Key Features",
+      "feature1": {
+        "title": "8-Signal Screening",
+        "description": "WHO mhGAP-aligned behavioral indicators for early detection"
+      },
+      "feature2": {
+        "title": "AI Risk Scoring",
+        "description": "Intelligent risk assessment with plain-language explanations"
+      },
+      "feature3": {
+        "title": "Bilingual Support",
+        "description": "Full English and Nepali language support"
+      },
+      "feature4": {
+        "title": "Supervisor Dashboard",
+        "description": "Area-level risk visualization and case management"
+      }
+    },
+    "cta": {
+      "title": "Ready to make a difference?",
+      "description": "Join community health workers across Nepal in early mental health screening.",
+      "button": "Get Started"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Welcome Back",
+      "subtitle": "Sign in to access your dashboard",
+      "email": "Email",
+      "emailPlaceholder": "Enter your email",
+      "password": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "submit": "Sign In",
+      "googleSignIn": "Continue with Google",
+      "orDivider": "or",
+      "forgotPassword": "Forgot password?",
+      "noAccount": "Don't have an account? Contact your administrator"
+    },
+    "errors": {
+      "invalidCredentials": "Invalid email or password",
+      "noAccount": "No account found. Contact your administrator.",
+      "networkError": "Network error. Please try again.",
+      "generic": "Something went wrong. Please try again."
+    }
+  },
+  "disclaimer": {
+    "title": "Important Notice",
+    "text": "Pahad is a decision-support tool. It does not diagnose mental health conditions. All data is used to support community health screening only."
+  },
+  "risk": {
+    "low": "Low Risk",
+    "moderate": "Moderate Risk",
+    "high": "High Risk",
+    "critical": "Critical Risk"
+  },
+  "signals": {
+    "sleep": {
+      "label": "Sleep changes",
+      "description": "Changes in sleep patterns"
+    },
+    "appetite": {
+      "label": "Appetite changes",
+      "description": "Changes in eating habits"
+    },
+    "withdrawal": {
+      "label": "Social withdrawal",
+      "description": "Avoiding social interactions"
+    },
+    "trauma": {
+      "label": "Recent loss or trauma",
+      "description": "Experienced recent loss or traumatic event"
+    },
+    "activities": {
+      "label": "Stopped daily activities",
+      "description": "No longer engaging in routine activities"
+    },
+    "hopelessness": {
+      "label": "Expressed hopelessness",
+      "description": "Verbalized feelings of hopelessness"
+    },
+    "substance": {
+      "label": "Alcohol/substance use increase",
+      "description": "Increased use of alcohol or substances"
+    },
+    "self_harm": {
+      "label": "Self-harm indicators",
+      "description": "Signs of self-harm or suicidal thoughts"
+    }
+  },
+  "responses": {
+    "0": "Not observed",
+    "1": "Mild / sometimes",
+    "2": "Significant / often",
+    "3": "Severe / persistent"
+  },
+  "status": {
+    "active": "Active",
+    "reviewed": "Reviewed",
+    "referred": "Referred"
+  },
+  "nav": {
+    "home": "Home",
+    "newVisit": "New Visit",
+    "history": "History",
+    "settings": "Settings",
+    "dashboard": "Dashboard",
+    "chwActivity": "CHW Activity",
+    "logout": "Sign Out"
+  },
+  "emptyStates": {
+    "chwHome": "Welcome! Start your first household visit.",
+    "visits": "No visits yet. Your completed visits will appear here.",
+    "dashboard": "Waiting for CHW visit data. No screenings submitted yet.",
+    "flagged": "No high-risk households flagged. All clear."
+  },
+  "common": {
+    "loading": "Loading...",
+    "syncing": "Syncing...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "submit": "Submit",
+    "back": "Back",
+    "next": "Next",
+    "error": "Error",
+    "success": "Success",
+    "language": "Language",
+    "english": "English",
+    "nepali": "नेपाली",
+    "score": "score",
+    "footer": {
+      "tagline": "Community Health Initiative"
+    }
+  },
+  "user": {
+    "account": "Account",
+    "profile": "Profile",
+    "role": "Role",
+    "area": "Area",
+    "chw": "Community Health Worker",
+    "supervisor": "Supervisor"
+  },
+  "visit": {
+    "selectHousehold": "Select Household",
+    "chooseHousehold": "Choose a household...",
+    "notes": "Notes (Optional)",
+    "notesPlaceholder": "Add any additional observations...",
+    "notesDisplay": "Notes",
+    "result": "Screening Result",
+    "riskLevel": "Risk Level",
+    "riskAssessment": "Risk Assessment",
+    "screeningResponses": "Screening Responses",
+    "explanation": "Explanation",
+    "backToHome": "Back to Home",
+    "viewDetails": "View Full Details",
+    "startNew": "Start New Visit",
+    "fallbackToast": "AI explanation unavailable. Score calculated using standard screening weights.",
+    "visitHistory": "Visit History",
+    "visitDetail": "Visit Details",
+    "household": "Household",
+    "date": "Date",
+    "score": "Score",
+    "noVisits": "No visits yet. Your completed visits will appear here.",
+    "notFound": "Visit not found",
+    "networkError": "Network error. Your form data has been preserved. Please try again.",
+    "chw": "CHW"
+  },
+  "home": {
+    "greeting": "Hello",
+    "visitsThisMonth": "Visits This Month",
+    "assignedHouseholds": "Assigned Households",
+    "pendingSyncs": "Pending Syncs",
+    "startNewVisit": "Start New Visit",
+    "welcome": "Welcome! Start your first household visit."
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Manage your account and preferences",
+    "language": "Language",
+    "accountInfo": "Account Information",
+    "name": "Name",
+    "email": "Email",
+    "role": "Role",
+    "area": "Area",
+    "allAreas": "All areas",
+    "logout": "Sign Out",
+    "logoutConfirm": "Are you sure you want to sign out?"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Overview of community health screening activity",
+    "totalScreenings": "Total Screenings",
+    "flaggedHouseholds": "Flagged Households",
+    "activeCHWs": "Active CHWs",
+    "avgAreaRisk": "Avg Area Risk",
+    "areaMap": "Area Risk Map",
+    "householdCode": "Household",
+    "area": "Area",
+    "riskScore": "Risk Score",
+    "lastVisit": "Last Visit",
+    "chw": "CHW",
+    "status": "Status"
+  },
+  "household": {
+    "title": "Household Details",
+    "code": "Code",
+    "headName": "Head of Household",
+    "area": "Area",
+    "assignedCHW": "Assigned CHW",
+    "currentRisk": "Current Risk",
+    "currentStatus": "Status",
+    "riskTrend": "Risk Trend",
+    "visitHistory": "Visit History",
+    "markReviewed": "Mark as Reviewed",
+    "markReferred": "Mark as Referred",
+    "noVisits": "No visit history available",
+    "notFound": "Household not found",
+    "backToDashboard": "Back to Dashboard",
+    "visitsCount": "visits",
+    "statusUpdated": "Status updated successfully",
+    "statusUpdateError": "Failed to update status",
+    "reviewedConfirmDesc": "This will mark {code} as reviewed. You can change the status again later.",
+    "referredConfirmDesc": "This will mark {code} as referred for specialized care. This indicates the household has been connected to additional support."
+  },
+  "workers": {
+    "title": "CHW Activity",
+    "subtitle": "Monitor community health worker performance and activity",
+    "name": "Name",
+    "area": "Area",
+    "visitsThisMonth": "Visits This Month",
+    "lastActive": "Last Active",
+    "noActivity": "No CHW activity data available",
+    "activeCHWs": "Active Community Health Workers",
+    "visitsThisMonthShort": "visits this month",
+    "never": "Never"
+  },
+  "map": {
+    "households": "Households",
+    "avgScore": "Avg Score"
+  }
+}
