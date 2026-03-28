@@ -1,0 +1,33 @@
+# dependencies
+node_modules/
+
+# next
+.next/
+out/
+
+# env
+.env
+.env.*
+!.env.example
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# system
+.DS_Store
+
+# worktrees
+.worktrees/
+worktrees/
+
+# build artifacts
+coverage/
+dist/
+tsconfig.tsbuildinfo
+
+# local tooling
+.contextweave/
+.cwignore
