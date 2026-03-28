@@ -2,10 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Loader2, CalendarCheck, Home, RefreshCw, Plus, MapPin } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Loader2, CalendarCheck, Plus, MapPin, Building2, Sparkles } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import { StatCard } from '@/components/chw/stat-card';
 import { useAuth } from '@/providers/auth-provider';
 import { useLanguage } from '@/providers/language-provider';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
@@ -16,7 +14,6 @@ export default function CHWHomePage() {
   const { t, locale } = useLanguage();
   const [visitsThisMonth, setVisitsThisMonth] = useState<number>(0);
   const [assignedHouseholds, setAssignedHouseholds] = useState<number>(0);
-  const [pendingSyncs, setPendingSyncs] = useState<number>(0);
   const [area, setArea] = useState<Area | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -48,9 +45,6 @@ export default function CHWHomePage() {
 
         setAssignedHouseholds(householdsCount || 0);
 
-        // Pending syncs is simulated (0 for now since we save immediately)
-        setPendingSyncs(0);
-
         // Fetch area if profile has area_id
         if (profile.area_id) {
           const { data: areaData } = await supabase
@@ -81,79 +75,119 @@ export default function CHWHomePage() {
     );
   }
 
-  const hasData = visitsThisMonth > 0 || assignedHouseholds > 0;
   const greeting = profile?.full_name?.split(' ')[0] || t('home.greeting');
   const areaName = area ? (locale === 'ne' ? area.name_ne : area.name) : null;
 
   return (
     <div className="space-y-6">
-      {/* Greeting */}
-      <div>
-        <h1 className="text-2xl font-bold">
-          {t('home.greeting')}, {greeting}!
-        </h1>
-        <div className="flex items-center gap-2 mt-1">
-          <p className="text-muted-foreground text-sm">
-            {t('user.chw')}
-          </p>
-          {areaName && (
-            <>
-              <span className="text-muted-foreground/50">·</span>
-              <p className="text-muted-foreground text-sm flex items-center gap-1">
-                <MapPin className="h-3 w-3" />
-                {areaName}
+      {/* Hero Greeting Card */}
+      <Card className="border-0 shadow-lg bg-gradient-to-br from-[var(--color-sage)] via-[var(--color-sage-dark)] to-[var(--color-sage-dark)] overflow-hidden">
+        <CardContent className="p-6">
+          <div className="flex items-start justify-between">
+            <div className="space-y-1">
+              <p className="text-white/80 text-sm font-medium">
+                {t('home.greeting')}
               </p>
-            </>
-          )}
-        </div>
+              <h1 className="text-2xl font-bold text-white">
+                {greeting}
+              </h1>
+              <div className="flex items-center gap-2 mt-2">
+                <span className="px-2 py-0.5 bg-white/20 rounded-full text-xs font-medium text-white">
+                  {t('user.chw')}
+                </span>
+                {areaName && (
+                  <span className="flex items-center gap-1 text-white/70 text-xs">
+                    <MapPin className="h-3 w-3" />
+                    {areaName}
+                  </span>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center justify-center size-12 rounded-xl bg-white/20 backdrop-blur-sm">
+              <Sparkles className="size-6 text-white" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Stats Section */}
+      <div className="space-y-1 px-1">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-sage-dark)]/70">
+          Overview
+        </h2>
+      </div>
+      
+      <div className="grid grid-cols-2 gap-3">
+        {/* Visits This Month */}
+        <Card className="border-0 shadow-md bg-gradient-to-br from-white to-[var(--color-ivory)]/30 overflow-hidden">
+          <CardContent className="p-4">
+            <div className="flex flex-col items-center text-center">
+              <div className="flex items-center justify-center size-10 rounded-xl bg-[var(--color-sage)]/10 text-[var(--color-sage-dark)] mb-2">
+                <CalendarCheck className="size-5" />
+              </div>
+              <span className="text-3xl font-bold text-foreground tabular-nums">
+                {visitsThisMonth}
+              </span>
+              <span className="text-xs text-muted-foreground mt-0.5">
+                {t('home.visitsThisMonth')}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* Assigned Households */}
+        <Card className="border-0 shadow-md bg-gradient-to-br from-white to-[var(--color-ivory)]/30 overflow-hidden">
+          <CardContent className="p-4">
+            <div className="flex flex-col items-center text-center">
+              <div className="flex items-center justify-center size-10 rounded-xl bg-[var(--color-terracotta)]/10 text-[var(--color-terracotta)] mb-2">
+                <Building2 className="size-5" />
+              </div>
+              <span className="text-3xl font-bold text-foreground tabular-nums">
+                {assignedHouseholds}
+              </span>
+              <span className="text-xs text-muted-foreground mt-0.5">
+                {t('home.assignedHouseholds')}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Empty State */}
-      {!hasData && (
-        <Card className="bg-primary/5 border-primary/20">
-          <CardContent className="p-6 text-center">
-            <p className="text-muted-foreground">
+      {/* Empty State Message */}
+      {visitsThisMonth === 0 && assignedHouseholds === 0 && (
+        <Card className="border-0 shadow-sm bg-gradient-to-r from-[var(--color-sage)]/5 to-transparent">
+          <CardContent className="p-5 text-center">
+            <p className="text-sm text-muted-foreground">
               {t('emptyStates.chwHome')}
             </p>
           </CardContent>
         </Card>
       )}
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 gap-4">
-        <StatCard
-          title={t('home.visitsThisMonth')}
-          value={visitsThisMonth}
-          icon={CalendarCheck}
-          variant="primary"
-        />
-        <StatCard
-          title={t('home.assignedHouseholds')}
-          value={assignedHouseholds}
-          icon={Home}
-          variant="success"
-        />
-      </div>
-
-      {/* Pending Syncs (if any) */}
-      {pendingSyncs > 0 && (
-        <StatCard
-          title={t('home.pendingSyncs')}
-          value={pendingSyncs}
-          icon={RefreshCw}
-          variant="warning"
-        />
-      )}
-
       {/* Main CTA */}
-      <Link href="/app/visit/new">
-        <Button
-          size="lg"
-          className="w-full h-14 text-lg font-semibold shadow-md hover:shadow-lg transition-shadow"
-        >
-          <Plus className="mr-2 h-5 w-5" />
-          {t('home.startNewVisit')}
-        </Button>
+      <Link href="/app/visit/new" className="block">
+        <Card className="border-0 shadow-lg bg-gradient-to-r from-[var(--color-sage)] to-[var(--color-sage-dark)] hover:shadow-xl transition-all duration-300 cursor-pointer group">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center size-11 rounded-xl bg-white/20 text-white">
+                  <Plus className="size-5" />
+                </div>
+                <div>
+                  <p className="text-white font-semibold text-base">
+                    {t('home.startNewVisit')}
+                  </p>
+                  <p className="text-white/70 text-xs">
+                    Begin a new screening
+                  </p>
+                </div>
+              </div>
+              <div className="size-8 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                <Plus className="size-4 text-white" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </Link>
     </div>
   );

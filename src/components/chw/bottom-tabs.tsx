@@ -26,7 +26,7 @@ export function BottomTabs() {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border safe-area-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-border/50 safe-area-bottom shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
       <div className="flex items-center justify-around h-16 max-w-lg mx-auto px-2">
         {TABS.map((tab) => {
           const isActive = getIsActive(tab.href);
@@ -39,15 +39,24 @@ export function BottomTabs() {
               href={tab.href}
               className={cn(
                 'flex flex-col items-center justify-center flex-1 h-full',
-                'transition-colors duration-200 touch-manipulation',
+                'transition-all duration-200 touch-manipulation',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                'relative',
                 isActive
-                  ? 'text-primary'
+                  ? 'text-[var(--color-sage-dark)]'
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
-              <Icon className={cn('h-5 w-5 mb-1', isActive && 'stroke-[2.5px]')} />
-              <span className={cn('text-xs', isActive && 'font-medium')}>
+              <div className={cn(
+                "relative",
+                isActive && "flex items-center justify-center"
+              )}>
+                <Icon className={cn('h-5 w-5 mb-1', isActive && 'stroke-[2.5px]')} />
+                {isActive && (
+                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[var(--color-sage)]" />
+                )}
+              </div>
+              <span className={cn('text-[10px] uppercase tracking-wider', isActive && 'font-semibold')}>
                 {label}
               </span>
             </Link>
