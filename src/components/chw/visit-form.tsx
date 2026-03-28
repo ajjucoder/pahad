@@ -1,15 +1,13 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2, AlertCircle, User, Calendar, Users, Home, ClipboardList, CheckCircle2, FileText, ChevronRight } from 'lucide-react';
+import { Loader2, AlertCircle, ClipboardList, FileText, CheckCircle2, Plus, Search, X, MapPin, Hash, User2, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
@@ -42,6 +40,80 @@ export function VisitForm({ households }: VisitFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ScoreResponse | null>(null);
   const [showFallbackToast, setShowFallbackToast] = useState(false);
+  
+  // Household selection dropdown state
+  const [householdSearch, setHouseholdSearch] = useState('');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  
+  // New household creation state
+  const [showNewHouseholdForm, setShowNewHouseholdForm] = useState(false);
+  const [newHouseholdCode, setNewHouseholdCode] = useState('');
+  const [newHouseholdName, setNewHouseholdName] = useState('');
+  const [isCreatingHousehold, setIsCreatingHousehold] = useState(false);
+  const [householdList, setHouseholdList] = useState<Household[]>(households);
+  
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+  
+  // Filter households based on search
+  const filteredHouseholds = householdList.filter(hh => {
+    const searchLower = householdSearch.toLowerCase();
+    return hh.code.toLowerCase().includes(searchLower) || 
+           hh.head_name.toLowerCase().includes(searchLower) ||
+           (hh.area_name && hh.area_name.toLowerCase().includes(searchLower));
+  });
+  
+  // Handle creating new household
+  const handleCreateHousehold = async () => {
+    if (!newHouseholdCode.trim() || !newHouseholdName.trim()) {
+      setError('Please fill in household code and name');
+      return;
+    }
+    
+    setIsCreatingHousehold(true);
+    setError(null);
+    
+    try {
+      const res = await fetch('/api/households', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: newHouseholdCode.trim(),
+          head_name: newHouseholdName.trim(),
+        }),
+      });
+      
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to create household');
+      }
+      
+      const data = await res.json();
+      const newHousehold = data.household;
+      
+      // Add to local list and select it
+      setHouseholdList(prev => [newHousehold, ...prev]);
+      setSelectedHousehold(newHousehold.id);
+      setShowNewHouseholdForm(false);
+      setNewHouseholdCode('');
+      setNewHouseholdName('');
+      setIsDropdownOpen(false);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to create household';
+      setError(message);
+    } finally {
+      setIsCreatingHousehold(false);
+    }
+  };
 
   const answeredCount = SIGNAL_KEYS.filter(
     (key) => responses[key as keyof VisitResponses] !== undefined
@@ -117,11 +189,15 @@ export function VisitForm({ households }: VisitFormProps) {
     setPatientAge('');
     setPatientGender('');
     setSelectedHousehold('');
+    setHouseholdSearch('');
     setResponses({});
     setNotes('');
     setResult(null);
     setError(null);
     setShowFallbackToast(false);
+    setShowNewHouseholdForm(false);
+    setNewHouseholdCode('');
+    setNewHouseholdName('');
   };
 
   // Get selected household details for mini summary
@@ -189,154 +265,301 @@ export function VisitForm({ households }: VisitFormProps) {
     <div className="flex flex-col gap-6">
       <DisclaimerBanner variant="compact" className="text-center" />
 
-      {/* Patient Information Section */}
-      <Card className="bg-gradient-to-br from-[var(--color-ivory)]/50 to-[var(--color-sage-light)]/10 border-t-4 border-t-[var(--color-sage)]">
-        <CardHeader className="pb-2 pt-3">
-          <CardTitle className="text-base flex items-center gap-2 text-[var(--color-sage-dark)]">
-            <User className="size-4" />
-            Patient Information
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <div className="flex flex-col gap-4">
-            {/* Name Field - Full width on mobile, then row layout */}
-            <div className="flex flex-col gap-4 sm:flex-row">
-              <div className="flex-1 flex flex-col gap-1.5">
-                <Label htmlFor="patientName" className="text-sm text-muted-foreground flex items-center gap-1">
-                  <User className="size-3" />
+      {/* Patient Information Section - Refined Healthcare Design */}
+      <div className="space-y-1">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-sage-dark)]/70 px-1">
+          Patient Information
+        </h2>
+        <Card className="border-0 shadow-md bg-gradient-to-br from-white via-[var(--color-ivory)]/30 to-white overflow-hidden">
+          <CardContent className="p-0">
+            <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-border/50">
+              {/* Full Name Field */}
+              <div className="p-4 sm:p-5">
+                <label htmlFor="patientName" className="block text-[10px] font-medium uppercase tracking-wider text-muted-foreground/80 mb-2">
                   Full Name
-                </Label>
-                <Input
+                </label>
+                <input
                   id="patientName"
+                  type="text"
                   value={patientName}
                   onChange={(e) => setPatientName(e.target.value)}
                   placeholder="Enter patient name"
-                  className="bg-background/80"
-                />
-              </div>
-            </div>
-            
-            {/* Age and Gender in a row */}
-            <div className="flex flex-col gap-4 sm:flex-row">
-              <div className="flex flex-col gap-1.5 sm:w-28">
-                <Label htmlFor="patientAge" className="text-sm text-muted-foreground flex items-center gap-1">
-                  <Calendar className="size-3" />
-                  Age
-                </Label>
-                <Input
-                  id="patientAge"
-                  type="number"
-                  min="0"
-                  max="150"
-                  value={patientAge}
-                  onChange={(e) => setPatientAge(e.target.value)}
-                  placeholder="Years"
-                  className="bg-background/80"
+                  className="w-full bg-transparent text-base font-medium placeholder:text-muted-foreground/40 focus:outline-none border-b-2 border-transparent focus:border-[var(--color-sage)] transition-colors pb-1"
                 />
               </div>
               
-              <div className="flex-1 flex flex-col gap-1.5">
-                <Label className="text-sm text-muted-foreground flex items-center gap-1">
-                  <Users className="size-3" />
+              {/* Age Field */}
+              <div className="p-4 sm:p-5">
+                <label htmlFor="patientAge" className="block text-[10px] font-medium uppercase tracking-wider text-muted-foreground/80 mb-2">
+                  Age
+                </label>
+                <div className="flex items-end gap-2">
+                  <input
+                    id="patientAge"
+                    type="number"
+                    min="0"
+                    max="150"
+                    value={patientAge}
+                    onChange={(e) => setPatientAge(e.target.value)}
+                    placeholder="—"
+                    className="w-20 bg-transparent text-2xl font-semibold placeholder:text-muted-foreground/30 focus:outline-none border-b-2 border-transparent focus:border-[var(--color-sage)] transition-colors pb-1 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
+                  <span className="text-sm text-muted-foreground/60 pb-1">years</span>
+                </div>
+              </div>
+              
+              {/* Gender Field */}
+              <div className="p-4 sm:p-5">
+                <label className="block text-[10px] font-medium uppercase tracking-wider text-muted-foreground/80 mb-3">
                   Gender
-                </Label>
-                <RadioGroup
-                  value={patientGender}
-                  onValueChange={setPatientGender}
-                  className="grid grid-cols-3 gap-2"
-                >
+                </label>
+                <div className="flex gap-2">
                   {['Male', 'Female', 'Other'].map((gender) => (
-                    <div key={gender}>
-                      <RadioGroupItem
-                        value={gender}
-                        id={`gender-${gender}`}
-                        className="peer sr-only"
-                      />
-                      <Label
-                        htmlFor={`gender-${gender}`}
-                        className={cn(
-                          'flex items-center justify-center text-center',
-                          'rounded-full border px-3 py-2 cursor-pointer',
-                          'text-xs font-medium transition-all',
-                          'hover:bg-accent hover:text-accent-foreground',
-                          'peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2',
-                          patientGender === gender && 'bg-primary text-primary-foreground border-primary'
-                        )}
-                      >
-                        {gender}
-                      </Label>
-                    </div>
+                    <button
+                      key={gender}
+                      type="button"
+                      onClick={() => setPatientGender(gender)}
+                      className={cn(
+                        'flex-1 px-3 py-2 text-xs font-semibold rounded-lg transition-all duration-200',
+                        'border-2',
+                        patientGender === gender
+                          ? 'bg-[var(--color-sage)] border-[var(--color-sage)] text-white shadow-sm'
+                          : 'bg-transparent border-border/40 text-muted-foreground hover:border-[var(--color-sage)]/50 hover:text-foreground'
+                      )}
+                    >
+                      {gender}
+                    </button>
                   ))}
-                </RadioGroup>
+                </div>
               </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
 
-      {/* Household Selection */}
-      <Card>
-        <CardHeader className="pb-2 pt-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Home className="size-4 text-primary" />
-            {t('visit.selectHousehold') || 'Select Household'}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0 flex flex-col gap-3">
-          <Select value={selectedHousehold} onValueChange={setSelectedHousehold}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder={t('visit.chooseHousehold') || 'Choose a household...'} />
-            </SelectTrigger>
-            <SelectContent>
-              {households.map((hh) => {
-                const areaDisplay = hh.area_name ? (locale === 'ne' ? hh.area_name_ne : hh.area_name) : null;
-                return (
-                  <SelectItem key={hh.id} value={hh.id} className="py-3">
-                    <div className="flex flex-col items-start gap-0.5">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-primary">{hh.code}</span>
-                        <span className="text-muted-foreground">·</span>
-                        <span className="font-medium">{hh.head_name}</span>
+      {/* Household Selection - Professional Searchable Dropdown */}
+      <div className="space-y-1">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-sage-dark)]/70 px-1">
+          {t('visit.selectHousehold') || 'Select Household'}
+        </h2>
+        <Card className="border-0 shadow-md bg-white overflow-hidden">
+          <CardContent className="p-0">
+            {selectedHouseholdDetails ? (
+              /* Selected Household - Clean Display */
+              <div className="p-4 sm:p-5 bg-gradient-to-r from-[var(--color-sage)]/5 to-transparent">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-1">
+                      <div className="flex items-center justify-center size-10 rounded-xl bg-[var(--color-sage)]/10 text-[var(--color-sage-dark)]">
+                        <Building2 className="size-5" />
                       </div>
-                      {areaDisplay && (
-                        <span className="text-xs text-muted-foreground">
-                          {areaDisplay}
-                        </span>
-                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-xl font-bold text-[var(--color-sage-dark)] tracking-tight">
+                            {selectedHouseholdDetails.code}
+                          </span>
+                          <span className="text-base font-medium text-foreground truncate">
+                            {selectedHouseholdDetails.head_name}
+                          </span>
+                        </div>
+                        {selectedHouseholdDetails.area_name && (
+                          <div className="flex items-center gap-1 mt-0.5">
+                            <MapPin className="size-3 text-muted-foreground" />
+                            <span className="text-xs text-muted-foreground">
+                              {locale === 'ne' ? selectedHouseholdDetails.area_name_ne : selectedHouseholdDetails.area_name}
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
-
-          {/* Mini summary card when household is selected */}
-          {selectedHouseholdDetails && (
-            <div className="flex items-center gap-3 p-3 rounded-lg border-2 border-[var(--color-sage)]/30 bg-[var(--color-sage-light)]/10">
-              <div className="flex-shrink-0 size-8 rounded-full bg-[var(--color-sage)]/20 flex items-center justify-center">
-                <Home className="size-4 text-[var(--color-sage-dark)]" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold text-[var(--color-sage-dark)]">
-                    {selectedHouseholdDetails.code}
-                  </span>
-                  <ChevronRight className="size-3 text-muted-foreground" />
-                  <span className="font-medium truncate">
-                    {selectedHouseholdDetails.head_name}
-                  </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedHousehold('');
+                      setHouseholdSearch('');
+                    }}
+                    className="flex-shrink-0 flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground bg-white hover:bg-muted/50 rounded-lg transition-all border border-border/50"
+                  >
+                    <X className="size-3" />
+                    Change
+                  </button>
                 </div>
-                {selectedHouseholdDetails.area_name && (
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {locale === 'ne' ? selectedHouseholdDetails.area_name_ne : selectedHouseholdDetails.area_name}
-                  </p>
+              </div>
+            ) : (
+              /* Household Selector - Custom Searchable Dropdown */
+              <div className="p-4 sm:p-5" ref={dropdownRef}>
+                {!showNewHouseholdForm ? (
+                  <>
+                    {/* Search Input */}
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                      <input
+                        type="text"
+                        value={householdSearch}
+                        onChange={(e) => {
+                          setHouseholdSearch(e.target.value);
+                          setIsDropdownOpen(true);
+                        }}
+                        onFocus={() => setIsDropdownOpen(true)}
+                        placeholder="Search by code, name, or area..."
+                        className="w-full pl-10 pr-4 py-3 text-sm bg-muted/30 border-2 border-transparent focus:border-[var(--color-sage)]/50 rounded-xl outline-none transition-colors placeholder:text-muted-foreground/50"
+                      />
+                    </div>
+                    
+                    {/* Dropdown List */}
+                    {isDropdownOpen && (
+                      <div className="mt-2 border border-border/50 rounded-xl overflow-hidden bg-white shadow-lg max-h-64 overflow-y-auto">
+                        {filteredHouseholds.length > 0 ? (
+                          <>
+                            {filteredHouseholds.slice(0, 8).map((hh) => {
+                              const areaDisplay = hh.area_name ? (locale === 'ne' ? hh.area_name_ne : hh.area_name) : null;
+                              return (
+                                <button
+                                  key={hh.id}
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedHousehold(hh.id);
+                                    setIsDropdownOpen(false);
+                                    setHouseholdSearch('');
+                                  }}
+                                  className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-[var(--color-sage)]/5 transition-colors border-b border-border/30 last:border-0"
+                                >
+                                  <div className="flex items-center justify-center size-9 rounded-lg bg-[var(--color-sage)]/10 text-[var(--color-sage-dark)] flex-shrink-0">
+                                    <Hash className="size-4" />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-bold text-[var(--color-sage-dark)]">{hh.code}</span>
+                                      <span className="text-sm font-medium text-foreground truncate">{hh.head_name}</span>
+                                    </div>
+                                    {areaDisplay && (
+                                      <span className="text-xs text-muted-foreground">{areaDisplay}</span>
+                                    )}
+                                  </div>
+                                </button>
+                              );
+                            })}
+                            {filteredHouseholds.length > 8 && (
+                              <div className="px-4 py-2 text-xs text-muted-foreground bg-muted/30 text-center">
+                                +{filteredHouseholds.length - 8} more households
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <div className="px-4 py-6 text-center">
+                            <p className="text-sm text-muted-foreground mb-2">No households found</p>
+                            <button
+                              type="button"
+                              onClick={() => setShowNewHouseholdForm(true)}
+                              className="text-sm text-[var(--color-sage)] font-medium hover:underline"
+                            >
+                              Add new household
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
+                    {/* Add New Household Button */}
+                    <button
+                      type="button"
+                      onClick={() => setShowNewHouseholdForm(true)}
+                      className="mt-3 w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-[var(--color-sage-dark)] bg-[var(--color-sage)]/10 hover:bg-[var(--color-sage)]/20 rounded-xl transition-colors"
+                    >
+                      <Plus className="size-4" />
+                      Add New Household
+                    </button>
+                  </>
+                ) : (
+                  /* New Household Form */
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-sm font-semibold text-foreground">Create New Household</h3>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowNewHouseholdForm(false);
+                          setNewHouseholdCode('');
+                          setNewHouseholdName('');
+                        }}
+                        className="p-1.5 text-muted-foreground hover:text-foreground rounded-md hover:bg-muted/50 transition-colors"
+                      >
+                        <X className="size-4" />
+                      </button>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-[10px] font-medium uppercase tracking-wider text-muted-foreground/80 mb-1.5">
+                          Household Code
+                        </label>
+                        <div className="relative">
+                          <Hash className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                          <input
+                            type="text"
+                            value={newHouseholdCode}
+                            onChange={(e) => setNewHouseholdCode(e.target.value.toUpperCase())}
+                            placeholder="e.g., HH-001"
+                            className="w-full pl-9 pr-3 py-2.5 text-sm bg-muted/20 border border-border/50 focus:border-[var(--color-sage)] rounded-lg outline-none transition-colors"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-medium uppercase tracking-wider text-muted-foreground/80 mb-1.5">
+                          Head of Household
+                        </label>
+                        <div className="relative">
+                          <User2 className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                          <input
+                            type="text"
+                            value={newHouseholdName}
+                            onChange={(e) => setNewHouseholdName(e.target.value)}
+                            placeholder="Full name"
+                            className="w-full pl-9 pr-3 py-2.5 text-sm bg-muted/20 border border-border/50 focus:border-[var(--color-sage)] rounded-lg outline-none transition-colors"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowNewHouseholdForm(false);
+                          setNewHouseholdCode('');
+                          setNewHouseholdName('');
+                        }}
+                        className="flex-1 px-4 py-2.5 text-sm font-medium text-muted-foreground bg-muted/30 hover:bg-muted/50 rounded-lg transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleCreateHousehold}
+                        disabled={isCreatingHousehold || !newHouseholdCode.trim() || !newHouseholdName.trim()}
+                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-[var(--color-sage)] hover:bg-[var(--color-sage-dark)] disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
+                      >
+                        {isCreatingHousehold ? (
+                          <>
+                            <Loader2 className="size-4 animate-spin" />
+                            Creating...
+                          </>
+                        ) : (
+                          <>
+                            <Plus className="size-4" />
+                            Create
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
                 )}
               </div>
-              <CheckCircle2 className="size-5 text-[var(--color-sage)]" />
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Progress Card - Sticky and Compact */}
       <Card className="sticky top-4 z-10 border-border/50 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 shadow-sm">
