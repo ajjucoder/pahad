@@ -1,4 +1,4 @@
-# Pahad -- Complete Implementation Plan
+# Saveika -- Complete Implementation Plan
 
 ---
 
@@ -20,14 +20,14 @@
 
 ## What We Reuse (Patterns Only, NOT Code)
 
-Since Pahad is open source, we **do NOT copy Kuvio design code**. We reuse only standard patterns:
+Since Saveika is open source, we **do NOT copy Kuvio design code**. We reuse only standard patterns:
 
 | Pattern | Source | How |
 |---------|--------|-----|
 | Supabase SSR boilerplate | Standard Supabase docs pattern | Fresh implementation of client.ts, server.ts, proxy utils |
 | Auth flow architecture | Standard Supabase Auth pattern | Email + Google OAuth, callback route, AuthProvider context |
 | Service role admin client | Standard Supabase pattern | For seed scripts and server-side ops |
-| shadcn/ui setup | Same library, fresh install | `npx shadcn@latest init` with Pahad's own theme |
+| shadcn/ui setup | Same library, fresh install | `npx shadcn@latest init` with Saveika's own theme |
 | Dashboard shell concept | Architectural inspiration only | Completely fresh sidebar + content layout |
 
 ---
@@ -123,7 +123,7 @@ Google OAuth is configured in the Supabase dashboard (client ID + secret already
 
 ## Phase 0: Project Scaffolding (~30 min)
 
-1. **Initialize Next.js 16** in `/Users/aejjusingh/Developer/hackathon/pahad`
+1. **Initialize Next.js 16** in `/Users/aejjusingh/Developer/hackathon/saveika`
    ```bash
    npx create-next-app@latest . --typescript --tailwind --app --src-dir
    ```
@@ -348,7 +348,7 @@ The `proxy.ts` verifies roles as follows:
 2. Call `supabase.auth.getUser()` to verify JWT is valid
 3. If accessing `/app/*` or `/supervisor/*`:
    - Query `profiles` table for `role` using the authenticated user ID
-   - Cache role in a short-lived cookie (`pahad-role`) to avoid re-querying on every request
+   - Cache role in a short-lived cookie (`saveika-role`) to avoid re-querying on every request
    - Compare role against required role for the route
 4. Redirect mismatches: no auth -> `/login`, wrong role -> correct home (`/app` or `/supervisor`)
 
@@ -480,7 +480,7 @@ Design: Organic health aesthetic -- warm, trustworthy, Nepal-context-appropriate
 2. **Problem Statement** -- Visual explanation of the mental health gap. Cards or illustrated points.
 3. **How It Works** -- 3-step flow: Visit -> Screen -> Flag. Icons + brief text.
 4. **Key Features** -- Cards: 8-Signal Screening, LLM-Powered Risk Scoring, Bilingual (EN/NE), Supervisor Dashboard with Map
-5. **Consent Disclaimer** -- Prominent: "Pahad is a decision-support tool. It does not diagnose mental health conditions."
+5. **Consent Disclaimer** -- Prominent: "Saveika is a decision-support tool. It does not diagnose mental health conditions."
 6. **Footer** -- Simple, clean
 
 All with Framer Motion entrance animations, mobile-responsive.
@@ -697,13 +697,13 @@ export default async function HouseholdDetailPage({
 
 ### Scope Clarification
 
-**What "PWA" means for Pahad:**
+**What "PWA" means for Saveika:**
 - Installable from browser to home screen (Android + iOS)
 - Standalone display mode (no browser chrome)
 - Proper app icons, splash screen, theme color
 - Service worker registered for installability criteria
 
-**What "offline" means for Pahad (from PRD):**
+**What "offline" means for Saveika (from PRD):**
 - **Simulated only.** There is NO real offline data sync, NO IndexedDB, NO background sync.
 - The "Syncing..." animation plays during the API call to `/api/score`. That is the extent of offline simulation.
 - If the user is actually offline, the app will show a network error toast. Data is NOT queued.
@@ -720,8 +720,8 @@ import type { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Pahad -- Community Mental Health Screening',
-    short_name: 'Pahad',
+    name: 'Saveika -- Community Mental Health Screening',
+    short_name: 'Saveika',
     description: 'A mobile decision-support tool for community health workers in Nepal',
     start_url: '/',
     display: 'standalone',
@@ -825,12 +825,12 @@ Generate icon set using a favicon generator:
 
 ```tsx
 export const metadata: Metadata = {
-  title: 'Pahad',
+  title: 'Saveika',
   description: 'Community mental health screening tool for Nepal',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'Pahad',
+    title: 'Saveika',
   },
   formatDetection: {
     telephone: false,
@@ -887,7 +887,7 @@ export const metadata: Metadata = {
 ## Project File Structure
 
 ```
-pahad/
+saveika/
 ├── src/
 │   ├── app/
 │   │   ├── manifest.ts                  # PWA manifest (Next.js 16 built-in)

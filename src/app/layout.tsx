@@ -6,6 +6,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { AuthProvider } from '@/providers/auth-provider';
 import { LanguageProvider } from '@/providers/language-provider';
 import { ServiceWorkerRegistration, InstallPrompt } from '@/components/shared';
+import { getMetadataBase } from '@/lib/utils';
 
 const inter = Inter({
   variable: '--font-sans',
@@ -26,8 +27,8 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: 'Pahad - Community Mental Health Screening',
-    template: '%s | Pahad',
+    default: 'Saveika - Community Mental Health Screening',
+    template: '%s | Saveika',
   },
   description:
     'A mobile decision-support tool for community health workers in Nepal to log early behavioral warning signs and flag households that may need mental health support.',
@@ -40,21 +41,21 @@ export const metadata: Metadata = {
     'CHW',
     'decision support',
   ],
-  authors: [{ name: 'Pahad Team' }],
-  creator: 'Pahad',
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'),
+  authors: [{ name: 'Saveika Team' }],
+  creator: 'Saveika',
+  metadataBase: getMetadataBase(process.env.NEXT_PUBLIC_APP_URL),
   openGraph: {
     type: 'website',
     locale: 'en_US',
     alternateLocale: ['ne_NP'],
-    title: 'Pahad - Community Mental Health Screening',
+    title: 'Saveika - Community Mental Health Screening',
     description:
       'A mobile decision-support tool for community health workers in Nepal to identify early warning signs and connect households with care.',
-    siteName: 'Pahad',
+    siteName: 'Saveika',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Pahad - Community Mental Health Screening',
+    title: 'Saveika - Community Mental Health Screening',
     description:
       'A mobile decision-support tool for community health workers in Nepal to identify early warning signs and connect households with care.',
   },
@@ -65,7 +66,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'Pahad',
+    title: 'Saveika',
   },
   formatDetection: {
     telephone: false,

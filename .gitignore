@@ -31,3 +31,4 @@ tsconfig.tsbuildinfo
 # local tooling
 .contextweave/
 .cwignore
+.vercel

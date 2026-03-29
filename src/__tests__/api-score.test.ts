@@ -123,6 +123,8 @@ describe('POST /api/score', () => {
     explanation_en: 'Test explanation',
     explanation_ne: 'नेपाली व्याख्या',
     scoring_method: 'fallback' as const,
+    action_en: 'Return visit within 1 week. Inform supervisor.',
+    action_ne: '१ हप्ता भित्र फिर्ता भ्रमण गर्नुहोस्। सुपरिवेक्षकलाई सूचित गर्नुहोस्।',
   };
 
   const mockVisit = {
@@ -530,6 +532,209 @@ describe('POST /api/score', () => {
         expect(response.status).toBe(200);
         expect(data.risk_level).toBe(risk_level);
       }
+    });
+  });
+
+  describe('Recommendation Fields', () => {
+    beforeEach(() => {
+      mockGetUser.mockResolvedValue({
+        data: { user: mockUser },
+        error: null,
+      });
+
+      mockAdminSingle.mockResolvedValue({
+        data: mockHousehold,
+        error: null,
+      });
+
+      mockSingle.mockResolvedValue({
+        data: mockProfile,
+        error: null,
+      });
+    });
+
+    it('should include action_en and action_ne in response for low risk', async () => {
+      mockCalculateScore.mockResolvedValue({
+        ...mockScoreResult,
+        score: 15,
+        risk_level: 'low',
+        action_en: 'Log and monitor. Continue routine monthly visits.',
+        action_ne: 'लग गर्नुहोस् र निगरानी राख्नुहोस्। नियमित मासिक भ्रमण जारी राख्नुहोस्।',
+      });
+      mockInsertVisitWithRiskUpdate.mockResolvedValue(mockVisit);
+
+      const request = new Request('http://localhost/api/score', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(validRequest),
+      });
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data).toHaveProperty('action_en');
+      expect(data).toHaveProperty('action_ne');
+      expect(data.action_en).toContain('Log and monitor');
+      expect(data.action_ne).toContain('लग गर्नुहोस्');
+    });
+
+    it('should include action_en and action_ne in response for moderate risk', async () => {
+      mockCalculateScore.mockResolvedValue({
+        ...mockScoreResult,
+        score: 35,
+        risk_level: 'moderate',
+        action_en: 'Return visit within 1 week. Inform supervisor.',
+        action_ne: '१ हप्ता भित्र फिर्ता भ्रमण गर्नुहोस्। सुपरिवेक्षकलाई सूचित गर्नुहोस्।',
+      });
+      mockInsertVisitWithRiskUpdate.mockResolvedValue(mockVisit);
+
+      const request = new Request('http://localhost/api/score', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(validRequest),
+      });
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.action_en).toContain('1 week');
+      expect(data.action_ne).toContain('१ हप्ता');
+    });
+
+    it('should include action_en and action_ne in response for high risk', async () => {
+      mockCalculateScore.mockResolvedValue({
+        ...mockScoreResult,
+        score: 65,
+        risk_level: 'high',
+        action_en: 'Refer to the health post. Flag in dashboard. Supervisor review required.',
+        action_ne: 'स्वास्थ्य चौकीमा रेफर गर्नुहोस्। ड्यासबोर्डमा झण्डा लगाउनुहोस्। सुपरिवेक्षक समीक्षा आवश्यक छ।',
+      });
+      mockInsertVisitWithRiskUpdate.mockResolvedValue(mockVisit);
+
+      const request = new Request('http://localhost/api/score', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(validRequest),
+      });
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.action_en).toContain('health post');
+      expect(data.action_ne).toContain('स्वास्थ्य चौकी');
+    });
+
+    it('should include action_en and action_ne in response for critical risk', async () => {
+      mockCalculateScore.mockResolvedValue({
+        ...mockScoreResult,
+        score: 90,
+        risk_level: 'critical',
+        action_en: 'Immediate escalation. Contact supervisor + doctor. Emergency protocol.',
+        action_ne: 'तत्काल वृद्धि। सुपरिवेक्षक र डाक्टरसँग सम्पर्क गर्नुहोस्। आपतकालीन प्रोटोकल।',
+      });
+      mockInsertVisitWithRiskUpdate.mockResolvedValue(mockVisit);
+
+      const request = new Request('http://localhost/api/score', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(validRequest),
+      });
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.action_en).toContain('Immediate');
+      expect(data.action_ne).toContain('तत्काल');
+    });
+
+    it('should persist action fields in visit record', async () => {
+      mockCalculateScore.mockResolvedValue({
+        ...mockScoreResult,
+        score: 65,
+        risk_level: 'high',
+        action_en: 'Refer to the health post. Flag in dashboard. Supervisor review required.',
+        action_ne: 'स्वास्थ्य चौकीमा रेफर गर्नुहोस्। ड्यासबोर्डमा झण्डा लगाउनुहोस्। सुपरिवेक्षक समीक्षा आवश्यक छ।',
+      });
+      mockInsertVisitWithRiskUpdate.mockResolvedValue(mockVisit);
+
+      const request = new Request('http://localhost/api/score', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(validRequest),
+      });
+
+      await POST(request);
+
+      expect(mockInsertVisitWithRiskUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action_en: expect.stringContaining('health post'),
+          action_ne: expect.stringContaining('स्वास्थ्य'),
+        })
+      );
+    });
+
+    it('should show critical recommendation when self_harm override triggers', async () => {
+      // Even with low score, self_harm >= 1 triggers critical
+      mockCalculateScore.mockResolvedValue({
+        ...mockScoreResult,
+        score: 10,
+        risk_level: 'critical', // Override applied by scoring
+        action_en: 'Immediate escalation. Contact supervisor + doctor. Emergency protocol.',
+        action_ne: 'तत्काल वृद्धि। सुपरिवेक्षक र डाक्टरसँग सम्पर्क गर्नुहोस्। आपतकालीन प्रोटोकल।',
+      });
+      mockInsertVisitWithRiskUpdate.mockResolvedValue(mockVisit);
+
+      const request = new Request('http://localhost/api/score', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...validRequest,
+          responses: {
+            ...validRequest.responses,
+            self_harm: 2,
+          },
+        }),
+      });
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.risk_level).toBe('critical');
+      expect(data.action_en).toContain('Immediate');
+      expect(data.action_en).toContain('Emergency');
+    });
+
+    it('should show critical recommendation when wish_to_die override triggers', async () => {
+      mockCalculateScore.mockResolvedValue({
+        ...mockScoreResult,
+        score: 8,
+        risk_level: 'critical', // Override applied by scoring
+      });
+      mockInsertVisitWithRiskUpdate.mockResolvedValue(mockVisit);
+
+      const request = new Request('http://localhost/api/score', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...validRequest,
+          responses: {
+            ...validRequest.responses,
+            wish_to_die: 1,
+          },
+        }),
+      });
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.risk_level).toBe('critical');
+      expect(data.action_en).toContain('supervisor');
     });
   });
 

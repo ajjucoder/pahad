@@ -1,5 +1,5 @@
 #!/usr/bin/env npx tsx
-// Pahad Database Seed Script
+// Saveika Database Seed Script
 // Run via: npx tsx scripts/seed.ts
 // Requires SUPABASE_SERVICE_ROLE_KEY env variable
 
@@ -121,7 +121,7 @@ function getExplanations(riskLevel: RiskLevel) {
 }
 
 async function seed() {
-  console.log('🌱 Starting Pahad database seed...\n');
+  console.log('🌱 Starting Saveika database seed...\n');
 
   // 1. Create areas
   console.log('📍 Ensuring areas...');

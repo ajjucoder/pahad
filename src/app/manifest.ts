@@ -2,8 +2,8 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Pahad - Community Mental Health Screening',
-    short_name: 'Pahad',
+    name: 'Saveika - Community Mental Health Screening',
+    short_name: 'Saveika',
     description:
       'A mobile decision-support tool for community health workers in Nepal to log early behavioral warning signs and flag households that may need mental health support.',
     start_url: '/',

@@ -5,13 +5,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { LanguageToggle } from '@/components/shared/language-toggle';
 import { useAuth } from '@/providers/auth-provider';
 import { useLanguage } from '@/providers/language-provider';
-import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { getSupabaseBrowserClientIfConfigured } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
 import type { Area } from '@/lib/types';
 import { useState, useEffect } from 'react';
 
 export default function SettingsPage() {
-  const { profile } = useAuth();
+  const { profile, signOut } = useAuth();
   const { t, locale } = useLanguage();
   const [area, setArea] = useState<Area | null>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -20,7 +20,11 @@ export default function SettingsPage() {
     async function fetchArea() {
       if (!profile?.area_id) return;
       
-      const supabase = getSupabaseBrowserClient();
+      const supabase = getSupabaseBrowserClientIfConfigured();
+      if (!supabase) {
+        return;
+      }
+
       const { data } = await supabase
         .from('areas')
         .select('*')
@@ -37,9 +41,7 @@ export default function SettingsPage() {
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
-    const supabase = getSupabaseBrowserClient();
-    await supabase.auth.signOut();
-    window.location.href = '/login';
+    await signOut();
   };
 
   const areaName = area ? (locale === 'ne' ? area.name_ne : area.name) : '—';

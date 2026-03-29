@@ -1,9 +1,10 @@
 'use client';
 
-import { ArrowLeft, Calendar, MapPin, User2, FileText, Building2 } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, User2, FileText, Building2, User } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { SignalBreakdown } from '@/components/chw/signal-breakdown';
+import { CareRecommendation } from '@/components/shared/care-recommendation';
 import { useLanguage } from '@/providers/language-provider';
 import { formatDate, cn } from '@/lib/utils';
 import type { Visit, Household, Profile, Area, RiskLevel } from '@/lib/types';
@@ -21,23 +22,23 @@ interface VisitDetailClientProps {
 }
 
 const RISK_COLORS: Record<RiskLevel, { gradient: string; dot: string; text: string }> = {
-  low: { 
-    gradient: 'from-emerald-500 to-emerald-600', 
+  low: {
+    gradient: 'from-emerald-500 to-emerald-600',
     dot: 'bg-emerald-400',
     text: 'text-emerald-50'
   },
-  moderate: { 
-    gradient: 'from-amber-500 to-amber-600', 
+  moderate: {
+    gradient: 'from-amber-500 to-amber-600',
     dot: 'bg-amber-400',
     text: 'text-amber-50'
   },
-  high: { 
-    gradient: 'from-orange-500 to-orange-600', 
+  high: {
+    gradient: 'from-orange-500 to-orange-600',
     dot: 'bg-orange-400',
     text: 'text-orange-50'
   },
-  critical: { 
-    gradient: 'from-red-500 to-red-600', 
+  critical: {
+    gradient: 'from-red-500 to-red-600',
     dot: 'bg-red-400',
     text: 'text-red-50'
   },
@@ -60,9 +61,12 @@ export function VisitDetailClient({ visit }: VisitDetailClientProps) {
 
   // Format date with current locale
   const formattedDate = formatDate(visit.visit_date, locale);
-  
+
   // Risk colors
   const riskStyle = RISK_COLORS[visit.risk_level];
+
+  // Patient info display
+  const hasPatientInfo = visit.patient_name || visit.patient_age || visit.patient_gender;
 
   return (
     <div className="space-y-5">
@@ -121,6 +125,48 @@ export function VisitDetailClient({ visit }: VisitDetailClientProps) {
         </CardContent>
       </Card>
 
+      {/* Patient Information */}
+      {hasPatientInfo && (
+        <>
+          <div className="space-y-1 px-1">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-sage-dark)]/70">
+              {t('visit.patientInfo') || 'Patient Information'}
+            </h2>
+          </div>
+          <Card className="border-0 shadow-sm bg-white overflow-hidden">
+            <CardContent className="p-0 divide-y divide-border/30">
+              {visit.patient_name && (
+                <div className="p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <User className="size-4 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">{t('visit.patientName') || 'Name'}</span>
+                  </div>
+                  <span className="text-sm font-medium text-foreground">{visit.patient_name}</span>
+                </div>
+              )}
+              {visit.patient_age !== null && visit.patient_age !== undefined && (
+                <div className="p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Calendar className="size-4 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">{t('visit.patientAge') || 'Age'}</span>
+                  </div>
+                  <span className="text-sm font-medium text-foreground">{visit.patient_age} {locale === 'ne' ? 'वर्ष' : 'years'}</span>
+                </div>
+              )}
+              {visit.patient_gender && (
+                <div className="p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <User2 className="size-4 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">{t('visit.patientGender') || 'Gender'}</span>
+                  </div>
+                  <span className="text-sm font-medium text-foreground">{visit.patient_gender}</span>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </>
+      )}
+
       {/* Signal Breakdown */}
       <div className="space-y-1 px-1">
         <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-sage-dark)]/70">
@@ -140,7 +186,7 @@ export function VisitDetailClient({ visit }: VisitDetailClientProps) {
           {t('visit.explanation')}
         </h2>
       </div>
-      
+
       <Card className="border-0 shadow-sm bg-gradient-to-br from-white to-[var(--color-ivory)]/30 overflow-hidden">
         <CardContent className="p-4">
           <p className="text-sm text-foreground/80 leading-relaxed">
@@ -148,6 +194,18 @@ export function VisitDetailClient({ visit }: VisitDetailClientProps) {
           </p>
         </CardContent>
       </Card>
+
+      {/* Recommendation Card with Action, Care Path, and Specialist */}
+      <CareRecommendation
+        level={visit.risk_level}
+        score={visit.total_score}
+        action_en={visit.action_en}
+        action_ne={visit.action_ne}
+        recommendation_en={visit.recommendation_en}
+        recommendation_ne={visit.recommendation_ne}
+        specialist_type={visit.specialist_type}
+        patient_age={visit.patient_age}
+      />
 
       {/* Notes (if any) */}
       {visit.notes && (

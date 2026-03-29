@@ -26,13 +26,14 @@ interface LanguageContextValue {
 
 const LanguageContext = createContext<LanguageContextValue | undefined>(undefined);
 
-const STORAGE_KEY = 'pahad-locale';
+const STORAGE_KEY = 'saveika-locale';
+const LEGACY_STORAGE_KEY = 'pahad-locale';
 
 // Safely access localStorage - returns null in restricted contexts
 function safeGetLocale(): Locale | null {
   try {
     if (typeof window === 'undefined') return null;
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const stored = localStorage.getItem(STORAGE_KEY) ?? localStorage.getItem(LEGACY_STORAGE_KEY);
     return (stored === 'en' || stored === 'ne') ? stored : null;
   } catch {
     // localStorage access denied in restricted contexts (e.g., private browsing, sandboxed iframes)
@@ -45,6 +46,7 @@ function safeSetLocale(locale: Locale): void {
   try {
     if (typeof window === 'undefined') return;
     localStorage.setItem(STORAGE_KEY, locale);
+    localStorage.removeItem(LEGACY_STORAGE_KEY);
     // Dispatch a storage event to notify other subscribers in the same window
     window.dispatchEvent(new StorageEvent('storage', { key: STORAGE_KEY, newValue: locale }));
   } catch {

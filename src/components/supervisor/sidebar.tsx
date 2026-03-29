@@ -9,6 +9,7 @@ import {
   LogOut,
   Menu,
   X,
+  UserPlus,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,7 @@ import { useState } from 'react';
 
 const NAV_ITEMS = [
   { href: '/supervisor', icon: LayoutDashboard, labelKey: 'nav.dashboard' },
+  { href: '/supervisor/applications', icon: UserPlus, labelKey: 'nav.applications' },
   { href: '/supervisor/workers', icon: Users, labelKey: 'nav.chwActivity' },
   { href: '/supervisor/settings', icon: Settings, labelKey: 'nav.settings' },
 ];
@@ -44,7 +46,7 @@ function SidebarContent({ pathname, t, signOut, onClose }: SidebarContentProps) 
             <span className="text-white font-bold text-lg">P</span>
           </div>
           <div>
-            <span className="font-bold text-foreground text-lg">Pahad</span>
+            <span className="font-bold text-foreground text-lg">Saveika</span>
             <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{t('user.supervisor')}</p>
           </div>
         </Link>
@@ -111,7 +113,7 @@ export function SupervisorSidebar() {
           <div className="w-8 h-8 rounded-lg bg-[var(--color-sage)] flex items-center justify-center">
             <span className="text-white font-bold text-sm">P</span>
           </div>
-          <span className="font-bold text-foreground">Pahad</span>
+          <span className="font-bold text-foreground">Saveika</span>
         </Link>
         <div className="flex items-center gap-2">
           <UserDisplay showLanguageToggle={false} />

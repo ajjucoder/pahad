@@ -1,4 +1,4 @@
-// Core constants for Pahad
+// Core constants for Saveika
 
 import type { RiskLevel } from './types';
 
@@ -66,7 +66,7 @@ export const STATUS_COLORS: Record<string, { bg: string; text: string; badge: st
 
 // Cookie names
 export const COOKIES = {
-  ROLE: 'pahad-role',
+  ROLE: 'saveika-role',
 } as const;
 
 // Session duration (for role cookie cache)

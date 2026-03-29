@@ -43,7 +43,7 @@ export async function POST(request: Request) {
         { status: 422 }
       );
     }
-    const { household_id, responses, notes } = validateOrThrow(scoreRequestSchema, body);
+    const { household_id, responses, notes, patient_name, patient_age, patient_gender } = validateOrThrow(scoreRequestSchema, body);
 
     // Use admin client to check household existence and ownership
     // This bypasses RLS so we can distinguish between "not found" and "not authorized"
@@ -85,8 +85,8 @@ export async function POST(request: Request) {
       );
     }
 
-    // Calculate risk score
-    const scoreResult = await calculateScore(responses as VisitResponses);
+    // Calculate risk score - now passing age and responses for recommendation
+    const scoreResult = await calculateScore(responses as VisitResponses, patient_age);
 
     // Insert visit and update household risk (admin client bypasses RLS for update)
     const visit = await insertVisitWithRiskUpdate({
@@ -98,6 +98,14 @@ export async function POST(request: Request) {
       risk_level: scoreResult.risk_level,
       explanation_en: scoreResult.explanation_en,
       explanation_ne: scoreResult.explanation_ne,
+      action_en: scoreResult.action_en || '',
+      action_ne: scoreResult.action_ne || '',
+      recommendation_en: scoreResult.recommendation_en || '',
+      recommendation_ne: scoreResult.recommendation_ne || '',
+      specialist_type: scoreResult.specialist_type || null,
+      patient_name: patient_name || null,
+      patient_age: patient_age || null,
+      patient_gender: (patient_gender as 'Male' | 'Female' | 'Other') || null,
       notes: notes || null,
     });
 
@@ -108,6 +116,11 @@ export async function POST(request: Request) {
       explanation_en: scoreResult.explanation_en,
       explanation_ne: scoreResult.explanation_ne,
       scoring_method: scoreResult.scoring_method,
+      action_en: scoreResult.action_en,
+      action_ne: scoreResult.action_ne,
+      recommendation_en: scoreResult.recommendation_en,
+      recommendation_ne: scoreResult.recommendation_ne,
+      specialist_type: scoreResult.specialist_type,
     });
   } catch (error) {
     if (error instanceof Error && error.name === 'ValidationError') {

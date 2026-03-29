@@ -1,10 +1,10 @@
-**PAHAD (पहाड)**
+**SAVEIKA**
 
 *An AI-Powered Mental Health Early Warning System for Nepal*
 
 # **1\. Core Idea**
 
-Pahad is a mobile decision-support tool designed to activate Nepal's existing network of 52,000+ Female Community Health Volunteers (FCHVs) as a proactive mental health early warning system.  Nepal already has the human infrastructure to tackle its mental health crisis. 52,000 FCHVs visit every ward in the country. Pahad gives them a structured digital tool to do what they already do “observe and report” but with AI-powered risk scoring and supervisor escalation pathways. 
+Saveika is a mobile decision-support tool designed to activate Nepal's existing network of 52,000+ Female Community Health Volunteers (FCHVs) as a proactive mental health early warning system.  Nepal already has the human infrastructure to tackle its mental health crisis. 52,000 FCHVs visit every ward in the country. Saveika gives them a structured digital tool to do what they already do “observe and report” but with AI-powered risk scoring and supervisor escalation pathways. 
 
 # **2\. FCHV Background & Research Foundation**
 
@@ -56,15 +56,15 @@ Nepal's Female Community Health Volunteer (FCHV) program is one of the largest a
 
 # **3\. Prior Work**
 
-Yes, prior evidence validates the concept; the gap Pahad fills is the digitization, quantification, and supervisor layer. Below is a structured review of the most relevant prior work.
+Yes, prior evidence validates the concept; the gap Saveika fills is the digitization, quantification, and supervisor layer. Below is a structured review of the most relevant prior work.
 
 ## **3.1 Community Informant Detection Tool (CIDT)**
 
-Developed by TPO Nepal, the CIDT is a paper-based proactive case detection tool using illustrated vignettes (picture cards) to help community volunteers identify households with signs of depression, psychosis, alcohol use disorder, epilepsy, and suicidality. It was validated in Nepal and is the closest existing analogue to Pahad.
+Developed by TPO Nepal, the CIDT is a paper-based proactive case detection tool using illustrated vignettes (picture cards) to help community volunteers identify households with signs of depression, psychosis, alcohol use disorder, epilepsy, and suicidality. It was validated in Nepal and is the closest existing analogue to Saveika.
 
  
 
-| Dimension | CIDT (Paper) | Pahad (Digital) |
+| Dimension | CIDT (Paper) | Saveika (Digital) |
 | :---- | :---- | :---- |
 | Detection method | Illustrated vignette recognition | Behavioral signal rating scale |
 | Risk output | Categorical (yes/no per disorder) | 0-100 score \+ 4-level risk band |
@@ -109,11 +109,11 @@ Nepal's Ministry of Health has already begun integrating mental health into FCHV
 
 ## **4.1 WHO mhGAP (Primary Standard)**
 
-The WHO Mental Health Gap Action Programme (mhGAP) is the primary international standard Pahad is built on. The mhGAP Guideline (3rd Edition, 2023\) includes 30 updated and 18 new recommendations across 90+ total guidance points, all specifically designed for non-specialist health workers in low- and middle-income countries.
+The WHO Mental Health Gap Action Programme (mhGAP) is the primary international standard Saveika is built on. The mhGAP Guideline (3rd Edition, 2023\) includes 30 updated and 18 new recommendations across 90+ total guidance points, all specifically designed for non-specialist health workers in low- and middle-income countries.
 
  
 
-| mhGAP Module | Pahad Signal Mapping |
+| mhGAP Module | Saveika Signal Mapping |
 | :---- | :---- |
 | Depression | Sleep changes, appetite changes, stopped activities, expressed hopelessness, social withdrawal |
 | Psychosis | Talking to self, strange beliefs, confused speech (Q8) |
@@ -129,7 +129,7 @@ The Self Reporting Questionnaire (SRQ-20) is the WHO standard for mental health 
 
  
 
-| SRQ-20 Property | Pahad Adaptation |
+| SRQ-20 Property | Saveika Adaptation |
 | :---- | :---- |
 | Self-report (person answers about self) | Observer-report (FCHV rates what they observe) |
 | Yes/No binary responses | 0-3 severity scale (not observed → severe) |
@@ -143,7 +143,7 @@ The Self Reporting Questionnaire (SRQ-20) is the WHO standard for mental health 
 
 **SRQ-20 Example Questions (Nepali Language)**
 
-The following illustrates how SRQ-20 style questions are adapted in Nepali for the Pahad observational format. The FCHV reads and rates each item based on what they observe during the home visit.
+The following illustrates how SRQ-20 style questions are adapted in Nepali for the Saveika observational format. The FCHV reads and rates each item based on what they observe during the home visit.
 
  
 
@@ -170,11 +170,11 @@ Note: Questions 11 and 12 carry mandatory override rules. Any rating of 1 or abo
 
 ## **4.3 WHO BPRS: (Adapted Weighting)**
 
-The differential weights assigned to Pahad's signals are informed by the Brief Psychiatric Rating Scale (BPRS),  the standard tool used in mhGAP clinical training to assess symptom severity. Self-harm and suicidality receive the highest weights (5 and 6\) consistent with mhGAP's emergency escalation protocols for these signals.
+The differential weights assigned to Saveika's signals are informed by the Brief Psychiatric Rating Scale (BPRS),  the standard tool used in mhGAP clinical training to assess symptom severity. Self-harm and suicidality receive the highest weights (5 and 6\) consistent with mhGAP's emergency escalation protocols for these signals.
 
  
 
-# **5\. The Pahad Screening Questionnaire**
+# **5\. The Saveika Screening Questionnaire**
 
 The following 12-question form is designed to be completed by an FCHV during a routine monthly home visit. It takes approximately 3 minutes. All questions are observational, the FCHV rates what they directly observe about a household member, not what the person reports about themselves.
 
@@ -222,7 +222,7 @@ Each completed form submission is a potential training record. To build a labele
 
 •        Minimum viable dataset: 500–1,000 labeled records for logistic regression; 2,000+ for gradient boosting (I don’t know which we will use).
 
-Even without a trained ML model, Pahad's weighted heuristic score produces a defensible baseline, because it uses the same WHO mhGAP expert weights used to train human supervisors.
+Even without a trained ML model, Saveika's weighted heuristic score produces a defensible baseline, because it uses the same WHO mhGAP expert weights used to train human supervisors.
 
  
 
@@ -230,7 +230,7 @@ Even without a trained ML model, Pahad's weighted heuristic score produces a def
 
 ## **6.1 Architecture Overview**
 
-Pahad's scoring pipeline has three layers. The first two are deterministic and always run. The third (LLM) adds interpretability on top of the score.
+Saveika's scoring pipeline has three layers. The first two are deterministic and always run. The third (LLM) adds interpretability on top of the score.
 
  
 
@@ -325,4 +325,3 @@ Once 500–1,000 labeled records exist (form responses or created by us), the we
 **Why the Weighted Heuristic Is Enough for us:**
 
 The weights are derived from WHO mhGAP expert guidelines, the same guidelines used to train Nepal's Ministry of Health supervisors. The LLM adds plain-language explanations that make the score actionable for FCHVs.
-

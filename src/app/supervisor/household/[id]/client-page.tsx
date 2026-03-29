@@ -21,7 +21,7 @@ import { RiskBadge } from '@/components/shared/risk-badge';
 import { SignalBreakdown } from '@/components/chw/signal-breakdown';
 import { useLanguage } from '@/providers/language-provider';
 import { STATUS_COLORS, RISK_COLORS } from '@/lib/constants';
-import type { RiskLevel, HouseholdStatus, Visit } from '@/lib/types';
+import type { RiskLevel, HouseholdStatus, Visit, SpecialistType } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import {
   ArrowLeft,
@@ -32,8 +32,17 @@ import {
   TrendingDown,
   Minus,
   AlertCircle,
+  Zap,
+  Heart,
 } from 'lucide-react';
 import { toast } from 'sonner';
+
+// Specialist type display for compact view
+const SPECIALIST_LABELS: Record<SpecialistType, { en: string; ne: string; color: string }> = {
+  psychiatrist: { en: 'Psychiatrist', ne: 'मनोचिकित्सक', color: 'text-purple-700 bg-purple-50 border-purple-200' },
+  child_psychiatrist: { en: 'Child Psychiatrist', ne: 'बाल मनोचिकित्सक', color: 'text-indigo-700 bg-indigo-50 border-indigo-200' },
+  addiction_psychiatrist: { en: 'Addiction Specialist', ne: 'व्यसन विशेषज्ञ', color: 'text-rose-700 bg-rose-50 border-rose-200' },
+};
 
 interface HouseholdData {
   id: string;
@@ -298,39 +307,102 @@ export function HouseholdDetailClient({ household }: HouseholdDetailClientProps)
             </div>
           ) : (
             <div className="space-y-4 px-4">
-              {household.visits.map((visit, idx) => (
-                <div key={visit.id}>
-                  {idx > 0 && <Separator className="mb-4" />}
-                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium">
-                          {formatDate(visit.visit_date)}
-                        </span>
-                        <RiskBadge
-                          level={visit.risk_level}
-                          score={visit.total_score}
-                          showScore
-                          size="sm"
-                        />
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-2">
-                        {t('visit.chw')}: {visit.chw_name}
-                      </p>
-                      <SignalBreakdown responses={visit.responses} compact />
-                      {visit.notes && (
-                        <div className="mt-2 p-2 bg-muted/50 rounded text-sm">
-                          <p className="text-xs text-muted-foreground mb-1">
-                            {t('visit.notesDisplay')}:
+              {household.visits.map((visit, idx) => {
+                  // Get action and recommendation for current locale
+                  const action = locale === 'ne' && visit.action_ne ? visit.action_ne : visit.action_en;
+                  const recommendation = locale === 'ne' && visit.recommendation_ne ? visit.recommendation_ne : visit.recommendation_en;
+                  const specialistLabel = visit.specialist_type
+                    ? (locale === 'ne'
+                        ? SPECIALIST_LABELS[visit.specialist_type].ne
+                        : SPECIALIST_LABELS[visit.specialist_type].en)
+                    : null;
+                  const specialistColor = visit.specialist_type ? SPECIALIST_LABELS[visit.specialist_type].color : '';
+
+                  return (
+                    <div key={visit.id}>
+                      {idx > 0 && <Separator className="mb-4" />}
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                            <span className="font-medium">
+                              {formatDate(visit.visit_date)}
+                            </span>
+                            <RiskBadge
+                              level={visit.risk_level}
+                              score={visit.total_score}
+                              showScore
+                              size="sm"
+                            />
+                          </div>
+                          <p className="text-sm text-muted-foreground mb-2">
+                            {t('visit.chw')}: {visit.chw_name}
+                            {visit.patient_name && (
+                              <span className="ml-2">
+                                • {t('visit.patient') || 'Patient'}: {visit.patient_name}
+                              </span>
+                            )}
                           </p>
-                          {visit.notes}
+                          <SignalBreakdown responses={visit.responses} compact />
+
+                          {/* Recommendation Details */}
+                          {(action || recommendation || specialistLabel) && (
+                            <div className="mt-3 p-3 bg-gradient-to-r from-muted/30 to-muted/10 rounded-lg space-y-2">
+                              {action && (
+                                <div className="flex items-start gap-2">
+                                  <Zap className="size-3.5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/80 mb-0.5">
+                                      {t('recommendation.actionLabel') || 'Action'}
+                                    </p>
+                                    <p className="text-xs font-medium text-foreground leading-snug">
+                                      {action}
+                                    </p>
+                                  </div>
+                                </div>
+                              )}
+                              {recommendation && (
+                                <div className="flex items-start gap-2">
+                                  <Heart className="size-3.5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/80 mb-0.5">
+                                      {t('recommendation.careRecommendation') || 'Recommendation'}
+                                    </p>
+                                    <p className="text-xs text-foreground/80 leading-relaxed">
+                                      {recommendation}
+                                    </p>
+                                  </div>
+                                </div>
+                              )}
+                              {specialistLabel && (
+                                <div className="flex items-center gap-2 pt-1">
+                                  <span className="text-[10px] text-muted-foreground">
+                                    {t('recommendation.specialistSuggestion') || 'Specialist'}:
+                                  </span>
+                                  <span className={cn(
+                                    "px-2 py-0.5 rounded text-[10px] font-semibold border",
+                                    specialistColor
+                                  )}>
+                                    {specialistLabel}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {visit.notes && (
+                            <div className="mt-2 p-2 bg-muted/50 rounded text-sm">
+                              <p className="text-xs text-muted-foreground mb-1">
+                                {t('visit.notesDisplay')}:
+                              </p>
+                              {visit.notes}
+                            </div>
+                          )}
                         </div>
-                      )}
+                      </div>
                     </div>
-                  </div>
-                </div>
-              ))}
+                  );
+                })}
             </div>
           )}
         </CardContent>

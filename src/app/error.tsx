@@ -61,7 +61,7 @@ export default function Error({ error, reset }: ErrorProps) {
 
       {/* Disclaimer */}
       <p className="mt-8 text-xs text-muted-foreground text-center max-w-xs">
-        Pahad is a decision-support tool. It does not diagnose mental health conditions.
+        Saveika is a decision-support tool. It does not diagnose mental health conditions.
       </p>
     </div>
   );

@@ -63,3 +63,17 @@ export function formatRelativeDate(dateStr: string | Date, locale: string = 'en'
     return formatDate(date, locale);
   }
 }
+
+export function getMetadataBase(appUrl?: string) {
+  const normalized = appUrl?.trim();
+
+  if (!normalized) {
+    return new URL('http://localhost:3000');
+  }
+
+  if (/^https?:\/\//i.test(normalized)) {
+    return new URL(normalized);
+  }
+
+  return new URL(`https://${normalized}`);
+}

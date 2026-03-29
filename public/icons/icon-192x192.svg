@@ -7,7 +7,7 @@
   </defs>
   <!-- Background circle -->
   <rect width="192" height="192" rx="40" fill="url(#bg)"/>
-  <!-- Mountain symbol (Pahad means mountain in Nepali) -->
+  <!-- Mountain symbol (Saveika means mountain in Nepali) -->
   <g fill="#FAFAF5">
     <!-- Main mountain -->
     <polygon points="96,45 40,130 152,130" fill="#FAFAF5" opacity="0.9"/>

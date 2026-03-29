@@ -53,12 +53,16 @@ export default function LandingPage() {
             </span>
           </Link>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <LanguageToggle />
+            <Button asChild variant="outline" size="sm">
+              <Link href="/create-account">
+                {t('landing.hero.apply')}
+              </Link>
+            </Button>
             <Button asChild className="bg-[#5B7553] hover:bg-[#3D5235] text-white shadow-md shadow-[#5B7553]/20">
               <Link href="/login">
-                {t('landing.hero.cta')}
-                <ArrowRight className="w-4 h-4 ml-2" />
+                {t('landing.hero.signIn')}
               </Link>
             </Button>
           </div>
@@ -118,8 +122,19 @@ export default function LandingPage() {
                   className="bg-[#5B7553] hover:bg-[#3D5235] text-white px-8 py-6 text-lg rounded-2xl shadow-xl shadow-[#5B7553]/30 hover:shadow-2xl transition-all duration-300"
                 >
                   <Link href="/login">
-                    {t('landing.hero.cta')}
+                    {t('landing.hero.signIn')}
                     <ArrowRight className="w-5 h-5 ml-2" />
+                  </Link>
+                </Button>
+                <Button
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className="px-8 py-6 text-lg rounded-2xl border-2 border-[#5B7553]/30 hover:border-[#5B7553] hover:bg-[#5B7553]/5"
+                >
+                  <Link href="/create-account">
+                    {t('landing.hero.apply')}
+                    <ChevronRight className="w-5 h-5 ml-1" />
                   </Link>
                 </Button>
               </motion.div>
@@ -404,6 +419,19 @@ export default function LandingPage() {
           </div>
         </section>
       </main>
+
+      <div className="fixed inset-x-4 bottom-4 z-40 flex gap-3 md:hidden">
+        <Button asChild variant="outline" className="flex-1 rounded-2xl bg-background/95 shadow-lg backdrop-blur">
+          <Link href="/login">
+            {t('landing.hero.signIn')}
+          </Link>
+        </Button>
+        <Button asChild className="flex-1 rounded-2xl bg-[#5B7553] text-white shadow-xl shadow-[#5B7553]/30">
+          <Link href="/create-account">
+            {t('landing.hero.cta')}
+          </Link>
+        </Button>
+      </div>
 
       {/* Footer */}
       <footer className="border-t border-border bg-background py-8">

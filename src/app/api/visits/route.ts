@@ -15,11 +15,19 @@ interface VisitWithHousehold {
   household_id: string;
   chw_id: string;
   visit_date: string;
+  patient_name: string | null;
+  patient_age: number | null;
+  patient_gender: 'Male' | 'Female' | 'Other' | null;
   responses: Record<string, number>;
   total_score: number;
   risk_level: 'low' | 'moderate' | 'high' | 'critical';
   explanation_en: string;
   explanation_ne: string;
+  action_en: string;
+  action_ne: string;
+  recommendation_en: string;
+  recommendation_ne: string;
+  specialist_type: 'psychiatrist' | 'child_psychiatrist' | 'addiction_psychiatrist' | null;
   notes: string | null;
   created_at: string;
   households: {
@@ -64,11 +72,19 @@ export async function GET() {
         household_id,
         chw_id,
         visit_date,
+        patient_name,
+        patient_age,
+        patient_gender,
         responses,
         total_score,
         risk_level,
         explanation_en,
         explanation_ne,
+        action_en,
+        action_ne,
+        recommendation_en,
+        recommendation_ne,
+        specialist_type,
         notes,
         created_at,
         households (

@@ -1,4 +1,4 @@
--- Pahad Database Schema
+-- Saveika Database Schema
 -- Run via Supabase SQL Editor
 
 -- ============================================================

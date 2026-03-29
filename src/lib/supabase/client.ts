@@ -5,6 +5,13 @@ import { createBrowserClient } from '@supabase/ssr';
 
 let client: ReturnType<typeof createBrowserClient> | undefined;
 
+export function hasSupabaseBrowserEnv() {
+  return Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL &&
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  );
+}
+
 export function getSupabaseBrowserClient() {
   if (client) {
     return client;
@@ -19,6 +26,14 @@ export function getSupabaseBrowserClient() {
 
   client = createBrowserClient(url, anonKey);
   return client;
+}
+
+export function getSupabaseBrowserClientIfConfigured() {
+  if (!hasSupabaseBrowserEnv()) {
+    return null;
+  }
+
+  return getSupabaseBrowserClient();
 }
 
 // Export as named for convenience

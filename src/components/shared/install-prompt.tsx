@@ -14,7 +14,8 @@ interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
 }
 
-const DISMISSAL_KEY = 'pahad-install-dismissed';
+const DISMISSAL_KEY = 'saveika-install-dismissed';
+const LEGACY_DISMISSAL_KEY = 'pahad-install-dismissed';
 const DISMISSAL_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days in ms
 
 // Helper functions to check device state
@@ -32,7 +33,7 @@ function getIsIOS(): boolean {
 
 function getIsDismissed(): boolean {
   if (typeof window === 'undefined') return false;
-  const dismissed = localStorage.getItem(DISMISSAL_KEY);
+  const dismissed = localStorage.getItem(DISMISSAL_KEY) ?? localStorage.getItem(LEGACY_DISMISSAL_KEY);
   return dismissed ? Date.now() - parseInt(dismissed, 10) < DISMISSAL_DURATION : false;
 }
 
@@ -107,7 +108,9 @@ export function InstallPrompt() {
 
   const handleDismiss = useCallback(() => {
     setShowPrompt(false);
-    localStorage.setItem(DISMISSAL_KEY, Date.now().toString());
+    const timestamp = Date.now().toString();
+    localStorage.setItem(DISMISSAL_KEY, timestamp);
+    localStorage.removeItem(LEGACY_DISMISSAL_KEY);
   }, []);
 
   // Don't show if already installed
@@ -126,7 +129,7 @@ export function InstallPrompt() {
             <div className="flex items-center justify-between">
               <CardTitle className="text-base flex items-center gap-2">
                 <Download className="w-4 h-4" />
-                Install Pahad
+                Install Saveika
               </CardTitle>
               <Button
                 variant="ghost"
@@ -138,7 +141,7 @@ export function InstallPrompt() {
               </Button>
             </div>
             <CardDescription className="text-sm">
-              Add Pahad to your home screen for quick access
+              Add Saveika to your home screen for quick access
             </CardDescription>
           </CardHeader>
           <CardContent className="text-sm space-y-2">
@@ -166,7 +169,7 @@ export function InstallPrompt() {
           <div className="flex items-center justify-between">
             <CardTitle className="text-base flex items-center gap-2">
               <Download className="w-4 h-4" />
-              Install Pahad
+              Install Saveika
             </CardTitle>
             <Button
               variant="ghost"

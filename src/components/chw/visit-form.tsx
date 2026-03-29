@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { DisclaimerBanner } from '@/components/shared/disclaimer-banner';
 import { RiskBadge } from '@/components/shared/risk-badge';
+import { CareRecommendation } from '@/components/shared/care-recommendation';
 import { useLanguage } from '@/providers/language-provider';
 import { SCREENING_SIGNALS, RESPONSE_OPTIONS, SIGNAL_KEYS } from '@/lib/signals';
 import { cn } from '@/lib/utils';
@@ -145,20 +146,17 @@ export function VisitForm({ households }: VisitFormProps) {
         return acc;
       }, {} as VisitResponses);
 
-      // Prepend patient info to notes if any patient fields are filled
-      let finalNotes = notes;
-      if (patientName || patientAge || patientGender) {
-        const patientInfo = `[Patient: Name: ${patientName || 'N/A'}, Age: ${patientAge || 'N/A'}, Gender: ${patientGender || 'N/A'}]`;
-        finalNotes = notes ? `${patientInfo}\n\n${notes}` : patientInfo;
-      }
-
+      // Send patient fields directly to API (backend stores them)
       const res = await fetch('/api/score', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           household_id: selectedHousehold,
           responses: completedResponses,
-          notes: finalNotes || undefined,
+          patient_name: patientName.trim() || undefined,
+          patient_age: patientAge ? parseInt(patientAge, 10) : undefined,
+          patient_gender: patientGender || undefined,
+          notes: notes.trim() || undefined,
         }),
       });
 
@@ -231,6 +229,18 @@ export function VisitForm({ households }: VisitFormProps) {
             </p>
           </CardContent>
         </Card>
+
+        {/* Care Path Recommendations */}
+        <CareRecommendation
+          level={result.risk_level}
+          score={result.score}
+          action_en={result.action_en}
+          action_ne={result.action_ne}
+          recommendation_en={result.recommendation_en}
+          recommendation_ne={result.recommendation_ne}
+          specialist_type={result.specialist_type}
+          patient_age={patientAge ? parseInt(patientAge, 10) : undefined}
+        />
 
         <div className="flex gap-3">
           <Button

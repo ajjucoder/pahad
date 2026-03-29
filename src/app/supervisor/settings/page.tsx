@@ -9,16 +9,13 @@ import { cn } from '@/lib/utils';
 import { useState } from 'react';
 
 export default function SupervisorSettingsPage() {
-  const { profile } = useAuth();
+  const { profile, signOut } = useAuth();
   const { t, locale } = useLanguage();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
-    const { getSupabaseBrowserClient } = await import('@/lib/supabase/client');
-    const supabase = getSupabaseBrowserClient();
-    await supabase.auth.signOut();
-    window.location.href = '/login';
+    await signOut();
   };
 
   return (

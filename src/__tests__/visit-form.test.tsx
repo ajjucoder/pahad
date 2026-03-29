@@ -53,6 +53,13 @@ function renderVisitForm() {
   );
 }
 
+function getProgressSummary(expected: string) {
+  return screen.getAllByText((_, element) => {
+    const text = element?.textContent?.replace(/\s+/g, '') ?? '';
+    return text === expected;
+  })[0];
+}
+
 describe('VisitForm - Explicit Answer Requirement', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -74,11 +81,11 @@ describe('VisitForm - Explicit Answer Requirement', () => {
     renderVisitForm();
 
     // Select a household (required for submission)
-    const householdSelect = screen.getByRole('combobox', { name: '' });
-    await user.click(householdSelect);
+    const householdSearch = screen.getByPlaceholderText('Search by code, name, or area...');
+    await user.click(householdSearch);
     
-    // Wait for dropdown and click the option (now includes area context)
-    const option = await screen.findByRole('option', { name: /HH-001/ });
+    // Wait for dropdown and click the option
+    const option = await screen.findByRole('button', { name: /HH-001/i });
     await user.click(option);
 
     // Find submit button
@@ -93,18 +100,18 @@ describe('VisitForm - Explicit Answer Requirement', () => {
     renderVisitForm();
 
     // Select a household
-    const householdSelect = screen.getByRole('combobox', { name: '' });
-    await user.click(householdSelect);
-    const option = await screen.findByRole('option', { name: /HH-001/ });
+    const householdSearch = screen.getByPlaceholderText('Search by code, name, or area...');
+    await user.click(householdSearch);
+    const option = await screen.findByRole('button', { name: /HH-001/i });
     await user.click(option);
 
-    expect(screen.getByText('0 / 12 answered')).toBeInTheDocument();
+    expect(getProgressSummary('0/12')).toBeInTheDocument();
 
-    // Answer only the first signal (sleep) by clicking on the first "Mild / sometimes" radio
-    const mildRadios = screen.getAllByRole('radio', { name: 'Mild / sometimes' });
-    await user.click(mildRadios[0]); // Click the first one (for sleep signal)
+    // Answer only the first signal (sleep) by clicking on the first "Mild / sometimes" button
+    const mildButtons = screen.getAllByRole('button', { name: 'Mild / sometimes' });
+    await user.click(mildButtons[0]);
 
-    expect(screen.getByText('1 / 12 answered')).toBeInTheDocument();
+    expect(getProgressSummary('1/12')).toBeInTheDocument();
   });
 
   it('should not allow submission when only some signals are answered', async () => {
@@ -112,14 +119,14 @@ describe('VisitForm - Explicit Answer Requirement', () => {
     renderVisitForm();
 
     // Select a household
-    const householdSelect = screen.getByRole('combobox', { name: '' });
-    await user.click(householdSelect);
-    const option = await screen.findByRole('option', { name: /HH-001/ });
+    const householdSearch = screen.getByPlaceholderText('Search by code, name, or area...');
+    await user.click(householdSearch);
+    const option = await screen.findByRole('button', { name: /HH-001/i });
     await user.click(option);
 
-    // Answer only the first signal (sleep) by clicking on the first "Mild / sometimes" radio
-    const mildRadios = screen.getAllByRole('radio', { name: 'Mild / sometimes' });
-    await user.click(mildRadios[0]); // Click the first one (for sleep signal)
+    // Answer only the first signal (sleep) by clicking on the first "Mild / sometimes" button
+    const mildButtons = screen.getAllByRole('button', { name: 'Mild / sometimes' });
+    await user.click(mildButtons[0]);
 
     const submitButton = screen.getByRole('button', { name: /submit/i });
     
@@ -132,16 +139,15 @@ describe('VisitForm - Explicit Answer Requirement', () => {
     renderVisitForm();
 
     // Select a household
-    const householdSelect = screen.getByRole('combobox', { name: '' });
-    await user.click(householdSelect);
-    const option = await screen.findByRole('option', { name: /HH-001/ });
+    const householdSearch = screen.getByPlaceholderText('Search by code, name, or area...');
+    await user.click(householdSearch);
+    const option = await screen.findByRole('button', { name: /HH-001/i });
     await user.click(option);
 
     // Answer all 12 signals - click "Not observed" for each
-    // The radio buttons are labeled with the option text
-    const notObservedOptions = screen.getAllByRole('radio', { name: 'Not observed' });
+    const notObservedOptions = screen.getAllByRole('button', { name: 'Not observed' });
     
-    // There should be 12 "Not observed" radio buttons (one for each signal)
+    // There should be 12 "Not observed" buttons (one for each signal)
     expect(notObservedOptions).toHaveLength(12);
     
     for (const radio of notObservedOptions) {
@@ -150,7 +156,7 @@ describe('VisitForm - Explicit Answer Requirement', () => {
 
     const submitButton = screen.getByRole('button', { name: /submit/i });
     
-    expect(screen.getByText('12 / 12 answered')).toBeInTheDocument();
+    expect(getProgressSummary('12/12')).toBeInTheDocument();
 
     // Now submit should be enabled because all 12 signals are explicitly answered
     expect(submitButton).toBeEnabled();
@@ -161,15 +167,15 @@ describe('VisitForm - Explicit Answer Requirement', () => {
     renderVisitForm();
 
     // Select a household
-    const householdSelect = screen.getByRole('combobox', { name: '' });
-    await user.click(householdSelect);
-    const option = await screen.findByRole('option', { name: /HH-001/ });
+    const householdSearch = screen.getByPlaceholderText('Search by code, name, or area...');
+    await user.click(householdSearch);
+    const option = await screen.findByRole('button', { name: /HH-001/i });
     await user.click(option);
 
     // Answer all 12 signals as "Not observed"
-    const notObservedOptions = screen.getAllByRole('radio', { name: 'Not observed' });
-    for (const radio of notObservedOptions) {
-      await user.click(radio);
+    const notObservedOptions = screen.getAllByRole('button', { name: 'Not observed' });
+    for (const button of notObservedOptions) {
+      await user.click(button);
     }
 
     const submitButton = screen.getByRole('button', { name: /submit/i });

@@ -1,14 +1,17 @@
 // OAuth callback route handler
 // Handles Google OAuth callback and redirects based on role
+// Supports CHW application workflow for unapproved users
 
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import { ensureAdminProfile, getRedirectPathForRole, isAdminEmail } from '@/lib/auth';
+import { getRedirectPathForRole } from '@/lib/auth';
 import { getSupabaseAdminClient } from '@/lib/supabase/admin';
+import { getApplicationByUserId, createApplication } from '@/lib/chw-applications';
 
 function isLocalDevelopmentOrigin(origin: string) {
   return process.env.NODE_ENV !== 'production' &&
+    process.env.ENABLE_DEV_GOOGLE_AUTO_PROVISION === 'true' &&
     (origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1'));
 }
 
@@ -37,9 +40,6 @@ async function provisionDevelopmentProfile(user: {
     user.user_metadata?.name ??
     user.email.split('@')[0];
 
-  // Admin email gets supervisor role
-  const role = isAdminEmail(user.email) ? 'supervisor' : 'chw';
-
   const { data: profile, error } = await admin
     .from('profiles')
     .insert({
@@ -47,7 +47,7 @@ async function provisionDevelopmentProfile(user: {
       email: user.email,
       full_name: fullName,
       avatar_url: user.user_metadata?.avatar_url ?? null,
-      role,
+      role: 'chw',
       area_id: null,
     })
     .select()
@@ -69,6 +69,50 @@ async function provisionDevelopmentProfile(user: {
   }
 
   return profile;
+}
+
+/**
+ * Handle new CHW applicant flow:
+ * 1. Create a pending application record
+ * 2. Redirect to create-account page for profile completion
+ */
+async function handleNewApplicant(
+  user: {
+    id: string;
+    email?: string;
+    user_metadata?: {
+      full_name?: string;
+      name?: string;
+      avatar_url?: string;
+    };
+  },
+  origin: string
+): Promise<NextResponse> {
+  if (!user.email) {
+    return NextResponse.redirect(`${origin}/login?error=no_email`);
+  }
+
+  const fullName = user.user_metadata?.full_name ??
+    user.user_metadata?.name ??
+    user.email.split('@')[0];
+
+  // Create or update the application using the helper
+  const application = await createApplication({
+    userId: user.id,
+    email: user.email,
+    fullName,
+    requestedRole: 'chw',
+    avatarUrl: user.user_metadata?.avatar_url,
+  });
+
+  if (!application) {
+    // If we can't create application, sign out and show error
+    console.error('Failed to create application for user:', user.id);
+    return NextResponse.redirect(`${origin}/login?error=application_failed`);
+  }
+
+  // Redirect to create-account page where they can complete their profile
+  return NextResponse.redirect(`${origin}/create-account`);
 }
 
 export async function GET(request: Request) {
@@ -131,46 +175,42 @@ export async function GET(request: Request) {
     .eq('id', user.id)
     .single();
 
-  if (profileError || !profile) {
-    // Profile doesn't exist - reject access
-    console.error('No profile found for user:', user.id);
-
-    if (isAdminEmail(user.email)) {
-      const adminProfile = await ensureAdminProfile(user);
-
-      if (adminProfile) {
-        const redirectPath = getRedirectPathForRole(adminProfile.role);
-        return NextResponse.redirect(`${origin}${redirectPath}`);
-      }
-    }
-
-    if (isLocalDevelopmentOrigin(origin)) {
-      const developmentProfile = await provisionDevelopmentProfile(user);
-
-      if (developmentProfile) {
-        const redirectPath = getRedirectPathForRole(developmentProfile.role);
-        return NextResponse.redirect(`${origin}${redirectPath}`);
-      }
-    }
-
-    await supabase.auth.signOut();
-    return NextResponse.redirect(`${origin}/login?error=no_account`);
+  // Profile exists - user is approved, proceed to app
+  if (!profileError && profile) {
+    const redirectPath = getRedirectPathForRole(profile.role);
+    return NextResponse.redirect(`${origin}${redirectPath}`);
   }
 
-  // Check if admin email needs role elevation
-  // Admin email is treated as supervisor regardless of current role
-  let effectiveRole = profile.role;
-  if (isAdminEmail(user.email) && profile.role !== 'supervisor') {
-    const elevatedProfile = await ensureAdminProfile(user, profile);
-    if (!elevatedProfile) {
+  // Profile doesn't exist - check for existing application
+  const existingApplication = await getApplicationByUserId(user.id);
+
+  if (existingApplication) {
+    // Application exists - redirect based on status
+    if (existingApplication.status === 'approved') {
+      // Application approved but profile not created (edge case)
+      // Profile should have been created by trigger, redirect to app
+      const redirectPath = getRedirectPathForRole('chw');
+      return NextResponse.redirect(`${origin}${redirectPath}`);
+    } else if (existingApplication.status === 'rejected') {
+      // Application was rejected
       await supabase.auth.signOut();
-      return NextResponse.redirect(`${origin}/login?error=no_account`);
+      return NextResponse.redirect(`${origin}/login?error=application_rejected`);
+    } else {
+      // Application is pending - redirect to create-account page
+      return NextResponse.redirect(`${origin}/create-account`);
     }
-
-    effectiveRole = elevatedProfile.role;
   }
 
-  // Redirect based on role
-  const redirectPath = getRedirectPathForRole(effectiveRole);
-  return NextResponse.redirect(`${origin}${redirectPath}`);
+  // No profile, no application - handle based on environment
+  if (isLocalDevelopmentOrigin(origin)) {
+    const developmentProfile = await provisionDevelopmentProfile(user);
+
+    if (developmentProfile) {
+      const redirectPath = getRedirectPathForRole(developmentProfile.role);
+      return NextResponse.redirect(`${origin}${redirectPath}`);
+    }
+  }
+
+  // Production: Create a new application and redirect to create-account
+  return handleNewApplicant(user, origin);
 }

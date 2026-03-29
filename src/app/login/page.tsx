@@ -31,7 +31,14 @@ const staggerContainer = {
 
 function LoginContent() {
   const { t } = useLanguage();
-  const { signInWithEmail, signInWithGoogle, user, profile, loading: authLoading } = useAuth();
+  const {
+    signInWithEmail,
+    signInWithGoogle,
+    user,
+    profile,
+    application,
+    loading: authLoading,
+  } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -50,7 +57,10 @@ function LoginContent() {
       const redirectPath = profile.role === 'supervisor' ? '/supervisor' : '/app';
       router.replace(redirectPath);
     }
-  }, [user, profile, authLoading, router]);
+    if (!authLoading && user && !profile && application) {
+      router.replace('/create-account');
+    }
+  }, [user, profile, application, authLoading, router]);
 
   // Set error from URL
   useEffect(() => {
@@ -285,9 +295,18 @@ function LoginContent() {
                 </form>
 
                 {/* Help text */}
-                <p className="text-xs text-center text-muted-foreground">
-                  {t('auth.login.noAccount')}
-                </p>
+                <div className="text-center space-y-2">
+                  <p className="text-xs text-muted-foreground">
+                    {t('auth.login.noAccount')}
+                  </p>
+                  <Link
+                    href="/create-account"
+                    className="inline-flex items-center gap-1 text-sm text-[#5B7553] hover:text-[#3D5235] font-medium"
+                  >
+                    {t('auth.login.applyLink')}
+                    <ArrowRight className="w-3 h-3" />
+                  </Link>
+                </div>
               </CardContent>
             </Card>
           </motion.div>

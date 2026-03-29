@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { normalizeRelation } from '../utils';
+import { getMetadataBase, normalizeRelation } from '../utils';
 
 describe('normalizeRelation', () => {
   it('returns null for null input', () => {
@@ -118,5 +118,15 @@ describe('normalizeRelation', () => {
       const profile = normalizeRelation(household.profiles);
       expect(profile?.full_name).toBe('Sita Thapa');
     });
+  });
+});
+
+describe('getMetadataBase', () => {
+  it('adds https when NEXT_PUBLIC_APP_URL is missing a protocol', () => {
+    expect(getMetadataBase('saveika.vercel.app').toString()).toBe('https://saveika.vercel.app/');
+  });
+
+  it('falls back to localhost when the app url is missing', () => {
+    expect(getMetadataBase(undefined).toString()).toBe('http://localhost:3000/');
   });
 });

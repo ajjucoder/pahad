@@ -1,10 +1,10 @@
-# Pahad — Complete Hackathon PRD
+# Saveika — Complete Hackathon PRD
 
 ---
 
 ## 1. Product Summary
 
-**Name:** Pahad
+**Name:** Saveika
 
 **One-line pitch:** A mobile decision-support tool for community health workers in Nepal to log early behavioral warning signs and flag households that may need mental health support.
 
@@ -354,7 +354,7 @@ This ensures the demo never breaks.
 
 Shown on landing page and at the top of every visit form:
 
-> Pahad is a decision-support tool. It does not diagnose mental health conditions. All data is used to support community health screening only.
+> Saveika is a decision-support tool. It does not diagnose mental health conditions. All data is used to support community health screening only.
 
 ---
 

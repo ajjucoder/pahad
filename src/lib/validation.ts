@@ -1,4 +1,4 @@
-// Zod validation schemas for Pahad API requests
+// Zod validation schemas for Saveika API requests
 
 import { z } from 'zod';
 
@@ -31,6 +31,9 @@ export const scoreRequestSchema = z.object({
   household_id: z.string().uuid(),
   responses: visitResponsesSchema,
   notes: z.string().max(1000).optional(),
+  patient_name: z.string().optional(),
+  patient_age: z.coerce.number().optional(),
+  patient_gender: z.string().optional(),
 });
 
 // Login request schema
@@ -60,12 +63,47 @@ export const paginationSchema = z.object({
   limit: z.coerce.number().int().positive().max(100).default(20),
 });
 
+// CHW Application status schema
+export const applicationStatusSchema = z.enum(['pending', 'approved', 'rejected']);
+export const applicationRoleSchema = z.enum(['chw', 'supervisor']);
+
+// CHW Application create schema (for applicants submitting their profile)
+export const chwApplicationCreateSchema = z.object({
+  phone: z.string().min(7).max(20),
+  address: z.string().min(5).max(500),
+  area_id: z.string().uuid(),
+});
+
+// CHW Application update schema (for applicants updating pending application)
+export const chwApplicationUpdateSchema = z.object({
+  full_name: z.string().min(2).max(100).optional(),
+  phone: z.string().min(7).max(20).optional(),
+  address: z.string().max(500).optional(),
+  area_id: z.string().uuid().optional().nullable(),
+});
+
+// CHW Application approval schema (for supervisors)
+export const chwApplicationApprovalSchema = z.object({
+  application_id: z.string().uuid(),
+  approved_role: applicationRoleSchema,
+});
+
+// CHW Application rejection schema (for supervisors)
+export const chwApplicationRejectionSchema = z.object({
+  application_id: z.string().uuid(),
+  rejection_reason: z.string().min(5).max(500),
+});
+
 // Types inferred from schemas
 export type ScoreRequestInput = z.infer<typeof scoreRequestSchema>;
 export type LoginRequestInput = z.infer<typeof loginRequestSchema>;
 export type VisitResponsesInput = z.infer<typeof visitResponsesSchema>;
 export type PaginationInput = z.infer<typeof paginationSchema>;
 export type HouseholdStatusRequestInput = z.infer<typeof householdStatusRequestSchema>;
+export type ChwApplicationCreateInput = z.infer<typeof chwApplicationCreateSchema>;
+export type ChwApplicationUpdateInput = z.infer<typeof chwApplicationUpdateSchema>;
+export type ChwApplicationApprovalInput = z.infer<typeof chwApplicationApprovalSchema>;
+export type ChwApplicationRejectionInput = z.infer<typeof chwApplicationRejectionSchema>;
 
 // Validation helper
 export function validateOrThrow<T>(schema: z.ZodSchema<T>, data: unknown): T {

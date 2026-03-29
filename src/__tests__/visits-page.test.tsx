@@ -42,6 +42,8 @@ const visits: VisitWithHousehold[] = [
     risk_level: 'low',
     explanation_en: 'Stable',
     explanation_ne: 'स्थिर',
+    action_en: 'Log and monitor. Continue routine monthly visits.',
+    action_ne: 'लग गर्नुहोस् र निगरानी राख्नुहोस्। नियमित मासिक भ्रमण जारी राख्नुहोस्।',
     notes: null,
     created_at: '2024-01-02T00:00:00Z',
     households: {
@@ -80,20 +82,23 @@ vi.mock('../providers/language-provider', () => ({
   }),
 }));
 
-vi.mock('../components/chw/visit-card', () => ({
-  VisitCard: ({ visit }: { visit: VisitWithHousehold }) => (
-    <div data-testid="visit-card">{visit.households.code}</div>
-  ),
-}));
-
 vi.mock('../components/ui/card', () => ({
   Card: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   CardContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
+vi.mock('next/link', () => ({
+  default: ({ children, href }: { children: React.ReactNode; href: string }) => (
+    <a href={href}>{children}</a>
+  ),
+}));
+
 vi.mock('lucide-react', () => ({
   Loader2: () => <span data-testid="loader">Loading...</span>,
   FileText: () => <span data-testid="file-text" />,
+  Calendar: () => <span data-testid="calendar-icon" />,
+  ChevronRight: () => <span data-testid="chevron-icon" />,
+  Zap: () => <span data-testid="zap-icon" />,
 }));
 
 vi.mock('../lib/supabase/client', () => ({
@@ -118,7 +123,7 @@ describe('VisitsPage', () => {
     render(<VisitsPage />);
 
     await waitFor(() => {
-      expect(screen.getByTestId('visit-card')).toBeInTheDocument();
+      expect(screen.getByText('HH-001')).toBeInTheDocument();
     });
 
     expect(screen.getByText('Visit History')).toBeInTheDocument();

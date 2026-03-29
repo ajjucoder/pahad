@@ -6,7 +6,7 @@ import { Loader2, CalendarCheck, Plus, MapPin, Building2, Sparkles } from 'lucid
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/providers/auth-provider';
 import { useLanguage } from '@/providers/language-provider';
-import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { getSupabaseBrowserClientIfConfigured } from '@/lib/supabase/client';
 import type { Area } from '@/lib/types';
 
 export default function CHWHomePage() {
@@ -21,7 +21,11 @@ export default function CHWHomePage() {
     async function fetchData() {
       if (!profile?.id) return;
 
-      const supabase = getSupabaseBrowserClient();
+      const supabase = getSupabaseBrowserClientIfConfigured();
+      if (!supabase) {
+        setLoading(false);
+        return;
+      }
       
       try {
         // Get visits this month

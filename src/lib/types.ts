@@ -1,10 +1,12 @@
-// Core domain types for Pahad
+// Core domain types for Saveika
 
 export type Role = 'chw' | 'supervisor';
 
 export type RiskLevel = 'low' | 'moderate' | 'high' | 'critical';
 
 export type HouseholdStatus = 'active' | 'reviewed' | 'referred';
+
+export type SpecialistType = 'psychiatrist' | 'child_psychiatrist' | 'addiction_psychiatrist';
 
 // Response values for screening signals (0-3)
 export type SignalValue = 0 | 1 | 2 | 3;
@@ -73,6 +75,14 @@ export interface Visit {
   risk_level: RiskLevel;
   explanation_en: string;
   explanation_ne: string;
+  action_en: string;
+  action_ne: string;
+  recommendation_en?: string;
+  recommendation_ne?: string;
+  specialist_type?: SpecialistType;
+  patient_name?: string | null;
+  patient_age?: number | null;
+  patient_gender?: string | null;
   notes: string | null;
   created_at: string;
 }
@@ -84,6 +94,11 @@ export interface ScoringResult {
   explanation_en: string;
   explanation_ne: string;
   scoring_method: 'gemini' | 'fallback';
+  action_en?: string;
+  action_ne?: string;
+  recommendation_en?: string;
+  recommendation_ne?: string;
+  specialist_type?: SpecialistType;
 }
 
 // API request types
@@ -91,6 +106,9 @@ export interface ScoreRequest {
   household_id: string;
   responses: VisitResponses;
   notes?: string;
+  patient_name?: string;
+  patient_age?: number;
+  patient_gender?: string;
 }
 
 export interface ScoreResponse {
@@ -100,6 +118,11 @@ export interface ScoreResponse {
   explanation_en: string;
   explanation_ne: string;
   scoring_method: 'gemini' | 'fallback';
+  action_en: string;
+  action_ne: string;
+  recommendation_en?: string;
+  recommendation_ne?: string;
+  specialist_type?: SpecialistType;
 }
 
 export interface LoginRequest {
@@ -140,6 +163,14 @@ export interface VisitRow {
   risk_level: RiskLevel;
   explanation_en: string;
   explanation_ne: string;
+  action_en: string;
+  action_ne: string;
+  recommendation_en?: string;
+  recommendation_ne?: string;
+  specialist_type?: SpecialistType;
+  patient_name?: string | null;
+  patient_age?: number | null;
+  patient_gender?: string | null;
   notes: string | null;
   created_at: string;
 }
@@ -161,4 +192,48 @@ export interface AreaRow {
   center_lat: number;
   center_lng: number;
   created_at: string;
+}
+
+// CHW Application status
+export type ApplicationStatus = 'pending' | 'approved' | 'rejected';
+
+// CHW Application type - for pending applications
+export interface ChwApplication {
+  id: string;
+  user_id: string;
+  email: string;
+  full_name: string;
+  requested_role: Role;
+  phone: string | null;
+  address: string | null;
+  area_id: string | null;
+  avatar_url: string | null;
+  status: ApplicationStatus;
+  rejection_reason: string | null;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+  updated_at: string;
+  // Optional area name fields for display (populated by API joins)
+  area_name?: string;
+  area_name_ne?: string;
+}
+
+// CHW Application row type for database
+export interface ChwApplicationRow {
+  id: string;
+  user_id: string;
+  email: string;
+  full_name: string;
+  requested_role: Role;
+  phone: string | null;
+  address: string | null;
+  area_id: string | null;
+  avatar_url: string | null;
+  status: ApplicationStatus;
+  rejection_reason: string | null;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+  updated_at: string;
 }

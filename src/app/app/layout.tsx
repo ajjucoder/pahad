@@ -7,18 +7,20 @@ import { useAuth } from '@/providers/auth-provider';
 import { Loader2 } from 'lucide-react';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, application, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     if (!loading) {
       if (!user) {
         router.push('/login');
+      } else if (!profile && application) {
+        router.push('/create-account');
       } else if (profile?.role === 'supervisor') {
         router.push('/supervisor');
       }
     }
-  }, [user, profile, loading, router]);
+  }, [user, profile, application, loading, router]);
 
   if (loading) {
     return (

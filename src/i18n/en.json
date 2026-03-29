@@ -1,13 +1,15 @@
 {
   "app": {
-    "name": "Pahad",
+    "name": "Saveika",
     "tagline": "Community Mental Health Screening"
   },
   "landing": {
     "hero": {
       "title": "Proactive Mental Health Support for Nepal",
       "subtitle": "A mobile decision-support tool for community health workers to identify early warning signs and connect households with care.",
-      "cta": "Get Started"
+      "cta": "Get Started",
+      "signIn": "Sign In",
+      "apply": "Create Account"
     },
     "problem": {
       "title": "The Challenge",
@@ -69,7 +71,8 @@
       "googleSignIn": "Continue with Google",
       "orDivider": "or",
       "forgotPassword": "Forgot password?",
-      "noAccount": "Don't have an account? Contact your administrator"
+      "noAccount": "Don't have an account? Contact your administrator",
+      "applyLink": "Create a CHW account"
     },
     "errors": {
       "invalidCredentials": "Invalid email or password",
@@ -78,9 +81,76 @@
       "generic": "Something went wrong. Please try again."
     }
   },
+  "apply": {
+    "title": "Create Your CHW Account",
+    "subtitle": "Sign in with Google and submit your profile for supervisor approval",
+    "googleSignIn": "Continue with Google",
+    "signIn": "Already have an account? Sign in",
+    "form": {
+      "requestedRole": "Requested Access",
+      "requestedRolePlaceholder": "Select access level",
+      "roleChw": "Community Health Worker",
+      "roleSupervisor": "Supervisor",
+      "accessReviewTitle": "Supervisor review",
+      "accessReviewDescription": "A supervisor will review your requested access level and profile details before approving this account.",
+      "phone": "Phone Number",
+      "phonePlaceholder": "Enter your phone number",
+      "address": "Address",
+      "addressPlaceholder": "Enter your full address",
+      "area": "Assigned Area",
+      "areaPlaceholder": "Select your area",
+      "submit": "Create Account"
+    },
+    "errors": {
+      "notAuthenticated": "Please sign in with Google first",
+      "required": "Please fill in all required fields",
+      "submit": "Failed to submit application",
+      "generic": "Something went wrong. Please try again."
+    },
+    "success": {
+      "title": "Waiting for Supervisor Approval",
+      "message": "Your account request has been submitted successfully.",
+      "nextSteps": "A supervisor will review your details. Once approved, you can sign in to the CHW dashboard.",
+      "backToLogin": "Back to Login"
+    },
+    "rejected": {
+      "title": "Application Not Approved",
+      "message": "Unfortunately, your application was not approved at this time."
+    }
+  },
+  "applications": {
+    "title": "Access Requests",
+    "subtitle": "{count} pending account requests awaiting review",
+    "empty": "No pending applications. All reviewed!",
+    "status": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "actions": {
+      "approve": "Approve",
+      "reject": "Reject"
+    },
+    "rejectModal": {
+      "title": "Reject Application",
+      "description": "Please provide a reason for rejection. This will be shared with the applicant.",
+      "reason": "Rejection Reason",
+      "reasonPlaceholder": "Enter the reason for rejection..."
+    },
+    "errors": {
+      "approve": "Failed to approve application",
+      "reject": "Failed to reject application",
+      "reasonRequired": "Please provide a rejection reason",
+      "generic": "Something went wrong. Please try again."
+    },
+    "success": {
+      "approved": "Application approved successfully",
+      "rejected": "Application rejected"
+    }
+  },
   "disclaimer": {
     "title": "Important Notice",
-    "text": "Pahad is a decision-support tool. It does not diagnose mental health conditions. All data is used to support community health screening only."
+    "text": "Saveika is a decision-support tool. It does not diagnose mental health conditions. All data is used to support community health screening only."
   },
   "risk": {
     "low": "Low Risk",
@@ -156,6 +226,7 @@
     "settings": "Settings",
     "dashboard": "Dashboard",
     "chwActivity": "CHW Activity",
+    "applications": "Applications",
     "logout": "Sign Out"
   },
   "emptyStates": {
@@ -215,7 +286,12 @@
     "notFound": "Visit not found",
     "networkError": "Network error. Your form data has been preserved. Please try again.",
     "completeAllSignals": "Please answer all 12 screening questions.",
-    "chw": "CHW"
+    "chw": "CHW",
+    "patientInfo": "Patient Information",
+    "patientName": "Name",
+    "patientAge": "Age",
+    "patientGender": "Gender",
+    "patient": "Patient"
   },
   "home": {
     "greeting": "Hello",
@@ -289,5 +365,45 @@
   "map": {
     "households": "Households",
     "avgScore": "Avg Score"
+  },
+  "recommendation": {
+    "title": "Recommended Care Path",
+    "actionLabel": "Recommended Action",
+    "careRecommendation": "Care Recommendation",
+    "specialistSuggestion": "Specialist Suggestion",
+    "actions": {
+      "continue_monitoring": "Continue Monitoring",
+      "routine_visits": "Routine Monthly Visits",
+      "document_observations": "Document Observations",
+      "return_visit_week": "Return Visit in 1 Week",
+      "inform_supervisor": "Inform Supervisor",
+      "monitor_closely": "Monitor Closely",
+      "refer_health_post": "Refer to Health Post",
+      "flag_dashboard": "Flag in Dashboard",
+      "supervisor_review": "Supervisor Review Required",
+      "immediate_escalation": "Immediate Escalation",
+      "contact_supervisor": "Contact Supervisor + Doctor",
+      "emergency_protocol": "Activate Emergency Protocol"
+    },
+    "descriptions": {
+      "continue_monitoring": "Maintain regular observation schedule",
+      "routine_visits": "Continue standard monthly household visits",
+      "document_observations": "Record behavioral signals for future reference",
+      "return_visit_week": "Schedule follow-up within 7 days",
+      "inform_supervisor": "Notify supervisor about screening results",
+      "monitor_closely": "Increase observation frequency",
+      "refer_health_post": "Connect household to local health facility",
+      "flag_dashboard": "Mark for priority supervisor attention",
+      "supervisor_review": "Escalate for supervisor assessment",
+      "immediate_escalation": "Priority response required now",
+      "contact_supervisor": "Reach out to supervisor and medical staff",
+      "emergency_protocol": "Follow WHO mhGAP emergency guidelines"
+    },
+    "urgency": {
+      "routine": "Routine Care",
+      "scheduled": "Scheduled Follow-up",
+      "priority": "Priority Attention",
+      "emergency": "Emergency Response"
+    }
   }
 }

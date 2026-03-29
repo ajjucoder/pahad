@@ -34,7 +34,7 @@ export default function NotFound() {
 
         {/* Disclaimer */}
         <p className="mt-12 text-xs text-muted-foreground max-w-xs mx-auto">
-          Pahad is a decision-support tool. It does not diagnose mental health conditions.
+          Saveika is a decision-support tool. It does not diagnose mental health conditions.
         </p>
       </div>
     </div>

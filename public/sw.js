@@ -1,5 +1,5 @@
 /**
- * Pahad Service Worker
+ * Saveika Service Worker
  *
  * Minimal service worker for PWA installability criteria.
  * Does NOT implement aggressive caching or offline sync (explicitly out of scope per PRD).
@@ -9,7 +9,7 @@
  * - Handle push notifications (future capability)
  */
 
-const CACHE_NAME = 'pahad-v1';
+const CACHE_NAME = 'saveika-v1';
 const STATIC_ASSETS = ['/'];
 
 // Install event - precache minimal assets
@@ -81,7 +81,7 @@ self.addEventListener('push', (event) => {
         url: data.url || '/',
       },
     };
-    event.waitUntil(self.registration.showNotification(data.title || 'Pahad', options));
+    event.waitUntil(self.registration.showNotification(data.title || 'Saveika', options));
   }
 });
 

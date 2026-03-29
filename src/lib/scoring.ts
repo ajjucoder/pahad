@@ -4,6 +4,7 @@ import { GoogleGenAI } from '@google/genai';
 import type { VisitResponses, ScoringResult, RiskLevel } from './types';
 import { getRiskLevelFromScore } from './constants';
 import { SIGNAL_WEIGHTS, MAX_WEIGHTED_SUM } from './signals';
+import { getRecommendation } from './recommendation';
 
 // 10-second timeout for Gemini API calls (per PRD spec)
 export const GEMINI_TIMEOUT_MS = 10000;
@@ -86,9 +87,10 @@ export function calculateFallbackScore(responses: VisitResponses): number {
 /**
  * Get fallback result when Gemini is unavailable
  */
-export function getFallbackResult(responses: VisitResponses): ScoringResult {
+export function getFallbackResult(responses: VisitResponses, age?: number): ScoringResult {
   const score = calculateFallbackScore(responses);
   const risk_level = applyOverrideRules(score, responses);
+  const recommendation = getRecommendation(risk_level, age, responses);
 
   return {
     score,
@@ -96,6 +98,11 @@ export function getFallbackResult(responses: VisitResponses): ScoringResult {
     explanation_en: 'Score calculated using standard screening weights. AI explanation unavailable.',
     explanation_ne: 'मानक स्क्रिनिङ भारका आधारमा स्कोर गणना गरिएको। AI व्याख्या उपलब्ध छैन।',
     scoring_method: 'fallback',
+    action_en: recommendation.action_en,
+    action_ne: recommendation.action_ne,
+    recommendation_en: recommendation.recommendation_en,
+    recommendation_ne: recommendation.recommendation_ne,
+    specialist_type: recommendation.specialist_type,
   };
 }
 
@@ -178,9 +185,10 @@ async function callGemini(
 /**
  * Main scoring function: Try Gemini, fallback to deterministic on failure
  */
-export async function calculateScore(responses: VisitResponses): Promise<ScoringResult> {
+export async function calculateScore(responses: VisitResponses, age?: number): Promise<ScoringResult> {
   const score = calculateFallbackScore(responses);
   const risk_level = applyOverrideRules(score, responses);
+  const recommendation = getRecommendation(risk_level, age, responses);
 
   try {
     const geminiResult = await callGemini(responses, score, risk_level);
@@ -190,6 +198,11 @@ export async function calculateScore(responses: VisitResponses): Promise<Scoring
       explanation_en: geminiResult.explanation_en,
       explanation_ne: geminiResult.explanation_ne,
       scoring_method: 'gemini',
+      action_en: recommendation.action_en,
+      action_ne: recommendation.action_ne,
+      recommendation_en: recommendation.recommendation_en,
+      recommendation_ne: recommendation.recommendation_ne,
+      specialist_type: recommendation.specialist_type,
     };
   } catch (error) {
     console.warn('Gemini explanation failed, using fallback:', error);
@@ -199,6 +212,11 @@ export async function calculateScore(responses: VisitResponses): Promise<Scoring
       explanation_en: 'Score calculated using standard screening weights. AI explanation unavailable.',
       explanation_ne: 'मानक स्क्रिनिङ भारका आधारमा स्कोर गणना गरिएको। AI व्याख्या उपलब्ध छैन।',
       scoring_method: 'fallback',
+      action_en: recommendation.action_en,
+      action_ne: recommendation.action_ne,
+      recommendation_en: recommendation.recommendation_en,
+      recommendation_ne: recommendation.recommendation_ne,
+      specialist_type: recommendation.specialist_type,
     };
   }
 }

@@ -1,16 +1,23 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Loader2, FileText, Calendar, ChevronRight } from 'lucide-react';
+import { Loader2, FileText, Calendar, ChevronRight, Zap } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useLanguage } from '@/providers/language-provider';
 import { useAuth } from '@/providers/auth-provider';
 import { cn, formatDate } from '@/lib/utils';
 import Link from 'next/link';
-import type { Visit, Household, RiskLevel } from '@/lib/types';
+import type { Visit, Household, RiskLevel, SpecialistType } from '@/lib/types';
 
 type VisitWithHousehold = Visit & {
   households: Pick<Household, 'code'>;
+};
+
+// Specialist type display for compact view
+const SPECIALIST_LABELS: Record<SpecialistType, { en: string; ne: string }> = {
+  psychiatrist: { en: 'Psychiatrist', ne: 'मनोचिकित्सक' },
+  child_psychiatrist: { en: 'Child Psychiatrist', ne: 'बाल मनोचिकित्सक' },
+  addiction_psychiatrist: { en: 'Addiction Specialist', ne: 'व्यसन विशेषज्ञ' },
 };
 
 export default function VisitsPage() {
@@ -100,7 +107,7 @@ export default function VisitsPage() {
           {visits.map((visit) => {
             const householdCode = visit.households?.code || 'Unknown';
             const visitDate = formatDate(visit.visit_date, locale);
-            
+
             // Risk level colors
             const riskColors: Record<RiskLevel, { bg: string; text: string; dot: string }> = {
               low: { bg: 'bg-emerald-50', text: 'text-emerald-700', dot: 'bg-emerald-500' },
@@ -109,7 +116,17 @@ export default function VisitsPage() {
               critical: { bg: 'bg-red-50', text: 'text-red-700', dot: 'bg-red-500' },
             };
             const colors = riskColors[visit.risk_level];
-            
+
+            // Get action for compact display
+            const action = locale === 'ne' && visit.action_ne ? visit.action_ne : visit.action_en;
+
+            // Get specialist label if available
+            const specialistLabel = visit.specialist_type
+              ? (locale === 'ne'
+                  ? SPECIALIST_LABELS[visit.specialist_type].ne
+                  : SPECIALIST_LABELS[visit.specialist_type].en)
+              : null;
+
             return (
               <Link key={visit.id} href={`/app/visits/${visit.id}`}>
                 <Card className={cn(
@@ -126,32 +143,63 @@ export default function VisitsPage() {
                           {visitDate}
                         </span>
                       </div>
-                      
+
                       {/* Main Content */}
-                      <div className="flex-1 px-4 py-3 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div>
-                            <p className="font-semibold text-foreground text-sm">
-                              {householdCode}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              Score: <span className="font-medium tabular-nums">{visit.total_score}</span>
-                            </p>
+                      <div className="flex-1 px-4 py-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-3">
+                            <div>
+                              <p className="font-semibold text-foreground text-sm">
+                                {householdCode}
+                                {visit.patient_name && (
+                                  <span className="font-normal text-muted-foreground ml-1.5">
+                                    • {visit.patient_name}
+                                  </span>
+                                )}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                Score: <span className="font-medium tabular-nums">{visit.total_score}</span>
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-3">
+                            <div className={cn(
+                              "flex items-center gap-1.5 px-2.5 py-1 rounded-full",
+                              colors.bg
+                            )}>
+                              <div className={cn("size-2 rounded-full", colors.dot)} />
+                              <span className={cn("text-xs font-medium", colors.text)}>
+                                {visit.risk_level.charAt(0).toUpperCase() + visit.risk_level.slice(1)}
+                              </span>
+                            </div>
+                            <ChevronRight className="size-4 text-muted-foreground" />
                           </div>
                         </div>
-                        
-                        <div className="flex items-center gap-3">
-                          <div className={cn(
-                            "flex items-center gap-1.5 px-2.5 py-1 rounded-full",
-                            colors.bg
-                          )}>
-                            <div className={cn("size-2 rounded-full", colors.dot)} />
-                            <span className={cn("text-xs font-medium", colors.text)}>
-                              {visit.risk_level.charAt(0).toUpperCase() + visit.risk_level.slice(1)}
-                            </span>
+
+                        {/* Compact Recommendation Summary */}
+                        {(action || specialistLabel) && (
+                          <div className="flex items-center gap-2 text-xs">
+                            {action && (
+                              <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-muted/50">
+                                <Zap className="size-3 text-muted-foreground" />
+                                <span className="text-muted-foreground line-clamp-1">
+                                  {action.length > 40 ? action.slice(0, 40) + '...' : action}
+                                </span>
+                              </div>
+                            )}
+                            {specialistLabel && (
+                              <div className={cn(
+                                "px-2 py-0.5 rounded text-[10px] font-medium border",
+                                visit.specialist_type === 'psychiatrist' && "text-purple-700 bg-purple-50 border-purple-200",
+                                visit.specialist_type === 'child_psychiatrist' && "text-indigo-700 bg-indigo-50 border-indigo-200",
+                                visit.specialist_type === 'addiction_psychiatrist' && "text-rose-700 bg-rose-50 border-rose-200"
+                              )}>
+                                {specialistLabel}
+                              </div>
+                            )}
                           </div>
-                          <ChevronRight className="size-4 text-muted-foreground" />
-                        </div>
+                        )}
                       </div>
                     </div>
                   </CardContent>
