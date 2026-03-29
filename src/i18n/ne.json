@@ -310,6 +310,7 @@
     "householdCodeLabel": "घरपरिवार कोड",
     "householdHeadLabel": "घरमूलीको नाम",
     "fullNamePlaceholder": "पूरा नाम",
+    "noAssignedArea": "घरपरिवार सिर्जना गर्नुअघि तपाईंलाई एउटा क्षेत्र तोकिएको हुनुपर्छ।",
     "creating": "सिर्जना हुँदैछ...",
     "create": "सिर्जना गर्नुहोस्"
   },

@@ -310,6 +310,7 @@
     "householdCodeLabel": "Household Code",
     "householdHeadLabel": "Head of Household",
     "fullNamePlaceholder": "Full name",
+    "noAssignedArea": "You need an assigned area before you can create households.",
     "creating": "Creating...",
     "create": "Create"
   },

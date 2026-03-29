@@ -4,7 +4,7 @@ import * as React from 'react';
 import NewVisitPage from '../app/app/visit/new/page';
 import type { Household, Profile } from '../lib/types';
 
-const mockProfile: Profile = {
+const baseProfile: Profile = {
   id: 'chw-123',
   email: 'chw1@demo.com',
   full_name: 'Test CHW',
@@ -13,6 +13,8 @@ const mockProfile: Profile = {
   area_id: 'area-1',
   created_at: '2024-01-01T00:00:00Z',
 };
+
+let currentProfile: Profile = { ...baseProfile };
 
 const households: Household[] = [
   {
@@ -48,9 +50,9 @@ const mockGetSupabaseBrowserClient = vi.fn();
 
 vi.mock('../providers/auth-provider', () => ({
   useAuth: () => ({
-    user: { id: mockProfile.id, email: mockProfile.email },
-    profile: mockProfile,
-    role: mockProfile.role,
+    user: { id: currentProfile.id, email: currentProfile.email },
+    profile: currentProfile,
+    role: currentProfile.role,
     session: null,
     loading: false,
     signInWithEmail: vi.fn(),
@@ -67,6 +69,7 @@ vi.mock('../providers/language-provider', () => ({
       const translations: Record<string, string> = {
         'nav.newVisit': 'New Visit',
         'emptyStates.chwHome': 'No households assigned',
+        'visit.noAssignedArea': 'You need an assigned area before you can create households.',
       };
       return translations[key] || key;
     },
@@ -96,6 +99,7 @@ vi.mock('../lib/supabase/client', () => ({
 describe('NewVisitPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    currentProfile = { ...baseProfile };
     global.fetch = mockFetch as unknown as typeof fetch;
     mockFetch.mockResolvedValue({
       ok: true,
@@ -136,6 +140,26 @@ describe('NewVisitPage', () => {
 
     expect(screen.getByTestId('household-count')).toHaveTextContent('0 households');
     expect(screen.queryByText('No households assigned')).not.toBeInTheDocument();
+  });
+
+  it('shows an empty state instead of VisitForm when no households are returned and the CHW has no area', async () => {
+    currentProfile = {
+      ...baseProfile,
+      area_id: null,
+    };
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ households: [] }),
+    });
+
+    render(<NewVisitPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('No households assigned')).toBeInTheDocument();
+    });
+
+    expect(screen.getByText('You need an assigned area before you can create households.')).toBeInTheDocument();
+    expect(screen.queryByTestId('visit-form')).not.toBeInTheDocument();
   });
 
   it('shows an error when the API request fails', async () => {
