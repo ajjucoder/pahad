@@ -106,10 +106,18 @@ interface VisitRow {
 export async function insertVisitWithRiskUpdate(visitData: VisitInsert): Promise<VisitRow> {
   const admin = getSupabaseAdminClient();
 
+  // Build insert payload, stripping undefined values to avoid Supabase column errors
+  const payload: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(visitData)) {
+    if (value !== undefined) {
+      payload[key] = value;
+    }
+  }
+
   // Insert visit
   const { data: visit, error: visitError } = await admin
     .from('visits')
-    .insert(visitData)
+    .insert(payload)
     .select()
     .single<VisitRow>();
 

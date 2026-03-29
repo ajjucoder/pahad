@@ -857,7 +857,7 @@ describe('POST /api/score', () => {
       const data = await response.json();
 
       expect(response.status).toBe(500);
-      expect(data.error).toBe('Failed to process visit');
+      expect(data.error).toBe('An unexpected error occurred. Please try again.');
     });
   });
 });

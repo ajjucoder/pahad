@@ -84,28 +84,72 @@ export async function POST(request: Request) {
     }
 
     // Calculate risk score - now passing age and responses for recommendation
-    const scoreResult = await calculateScore(responses as VisitResponses, patient_age);
+    let scoreResult: Awaited<ReturnType<typeof calculateScore>>;
+    try {
+      scoreResult = await calculateScore(responses as VisitResponses, patient_age);
+    } catch (scoreError) {
+      console.error('Score calculation failed:', scoreError);
+      return NextResponse.json(
+        { error: 'Score calculation failed. Please try again.' },
+        { status: 500 }
+      );
+    }
 
     // Insert visit and update household risk (admin client bypasses RLS for update)
-    const visit = await insertVisitWithRiskUpdate({
-      household_id,
-      chw_id: user.id,
-      visit_date: new Date().toISOString().split('T')[0],
-      responses: responses as Record<string, number>,
-      total_score: scoreResult.score,
-      risk_level: scoreResult.risk_level,
-      explanation_en: scoreResult.explanation_en,
-      explanation_ne: scoreResult.explanation_ne,
-      action_en: scoreResult.action_en || '',
-      action_ne: scoreResult.action_ne || '',
-      recommendation_en: scoreResult.recommendation_en || '',
-      recommendation_ne: scoreResult.recommendation_ne || '',
-      specialist_type: scoreResult.specialist_type || null,
-      patient_name: patient_name || null,
-      patient_age: patient_age ?? null,
-      patient_gender: patient_gender || null,
-      notes: notes || null,
-    });
+    // Try full insert first; if it fails (e.g. recommendation columns missing),
+    // retry with only core columns so the visit is never lost.
+    let visit: { id: string };
+    try {
+      visit = await insertVisitWithRiskUpdate({
+        household_id,
+        chw_id: user.id,
+        visit_date: new Date().toISOString().split('T')[0],
+        responses: responses as Record<string, number>,
+        total_score: scoreResult.score,
+        risk_level: scoreResult.risk_level,
+        explanation_en: scoreResult.explanation_en,
+        explanation_ne: scoreResult.explanation_ne,
+        action_en: scoreResult.action_en || '',
+        action_ne: scoreResult.action_ne || '',
+        recommendation_en: scoreResult.recommendation_en || '',
+        recommendation_ne: scoreResult.recommendation_ne || '',
+        specialist_type: scoreResult.specialist_type || null,
+        patient_name: patient_name || null,
+        patient_age: patient_age ?? null,
+        patient_gender: patient_gender || null,
+        notes: notes || null,
+      });
+    } catch (insertError) {
+      console.error('Full visit insert failed, retrying with core fields:', insertError);
+      // Retry with only the core columns that definitely exist in the base schema
+      try {
+        visit = await insertVisitWithRiskUpdate({
+          household_id,
+          chw_id: user.id,
+          visit_date: new Date().toISOString().split('T')[0],
+          responses: responses as Record<string, number>,
+          total_score: scoreResult.score,
+          risk_level: scoreResult.risk_level,
+          explanation_en: scoreResult.explanation_en,
+          explanation_ne: scoreResult.explanation_ne,
+          action_en: '',
+          action_ne: '',
+          recommendation_en: '',
+          recommendation_ne: '',
+          specialist_type: null,
+          patient_name: null,
+          patient_age: null,
+          patient_gender: null,
+          notes: notes || null,
+        } as Parameters<typeof insertVisitWithRiskUpdate>[0]);
+      } catch (retryError) {
+        console.error('Core visit insert also failed:', retryError);
+        return NextResponse.json(
+          { error: 'Failed to save visit. Please try again.' },
+          { status: 500 }
+        );
+      }
+    }
 
     return NextResponse.json({
       visit_id: visit.id,
@@ -129,9 +173,9 @@ export async function POST(request: Request) {
       );
     }
 
-    console.error('Score API error:', error);
+    console.error('Score API unexpected error:', error);
     return NextResponse.json(
-      { error: 'Failed to process visit' },
+      { error: 'An unexpected error occurred. Please try again.' },
       { status: 500 }
     );
   }
