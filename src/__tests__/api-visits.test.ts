@@ -7,6 +7,9 @@ const mockAdminSelect = vi.fn();
 const mockAdminEq = vi.fn();
 const mockAdminSingle = vi.fn();
 const mockAdminOrder = vi.fn();
+const mockVisitsSelect = vi.fn();
+const mockVisitsEq = vi.fn();
+const mockVisitsOrder = vi.fn();
 
 const mockAdminClient = {
   from: mockAdminFrom,
@@ -36,9 +39,9 @@ describe('GET /api/visits', () => {
       }
 
       return {
-        select: mockAdminSelect.mockReturnValue({
-          eq: mockAdminEq.mockReturnValue({
-            order: mockAdminOrder,
+        select: mockVisitsSelect.mockReturnValue({
+          eq: mockVisitsEq.mockReturnValue({
+            order: mockVisitsOrder,
           }),
         }),
       };
@@ -79,7 +82,7 @@ describe('GET /api/visits', () => {
       data: { role: 'chw' },
       error: null,
     });
-    mockAdminOrder.mockResolvedValue({
+    mockVisitsOrder.mockResolvedValue({
       data: [
         {
           id: 'visit-1',
@@ -103,7 +106,54 @@ describe('GET /api/visits', () => {
     ]);
     expect(mockAdminFrom).toHaveBeenCalledWith('profiles');
     expect(mockAdminFrom).toHaveBeenCalledWith('visits');
-    expect(mockAdminEq).toHaveBeenCalledWith('chw_id', 'chw-123');
-    expect(mockAdminOrder).toHaveBeenCalledWith('created_at', { ascending: false });
+    expect(mockVisitsEq).toHaveBeenCalledWith('chw_id', 'chw-123');
+    expect(mockVisitsOrder).toHaveBeenCalledWith('created_at', { ascending: false });
+  });
+
+  it('falls back to the legacy visits query when optional columns are missing', async () => {
+    mockGetAuthenticatedUser.mockResolvedValue({ id: 'chw-123' });
+    mockAdminSingle.mockResolvedValue({
+      data: { role: 'chw' },
+      error: null,
+    });
+
+    mockVisitsOrder
+      .mockResolvedValueOnce({
+        data: null,
+        error: { message: 'column visits.action_en does not exist' },
+      })
+      .mockResolvedValueOnce({
+        data: [
+          {
+            id: 'visit-legacy-1',
+            chw_id: 'chw-123',
+            household_id: 'household-1',
+            visit_date: '2024-01-01',
+            responses: {},
+            total_score: 4,
+            risk_level: 'low',
+            explanation_en: 'Stable',
+            explanation_ne: 'स्थिर',
+            notes: null,
+            created_at: '2024-01-01T00:00:00Z',
+            households: { code: 'HH-001' },
+          },
+        ],
+        error: null,
+      });
+
+    const response = await GET();
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(mockVisitsSelect).toHaveBeenCalledTimes(2);
+    expect(data.visits).toHaveLength(1);
+    expect(data.visits[0]).toMatchObject({
+      id: 'visit-legacy-1',
+      households: { code: 'HH-001' },
+    });
+    expect(data.visits[0]).not.toHaveProperty('action_en');
+    expect(data.visits[0]).not.toHaveProperty('specialist_type');
+    expect(data.visits[0]).not.toHaveProperty('patient_name');
   });
 });

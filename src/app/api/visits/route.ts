@@ -39,6 +39,60 @@ interface VisitWithHouseholdRelation extends Omit<VisitWithHousehold, 'household
   households: Array<{ code: string }> | { code: string } | null;
 }
 
+const VISITS_BASE_SELECT = `
+  id,
+  household_id,
+  chw_id,
+  visit_date,
+  responses,
+  total_score,
+  risk_level,
+  explanation_en,
+  explanation_ne,
+  notes,
+  created_at,
+  households (
+    code
+  )
+`;
+
+const VISITS_EXTENDED_SELECT = `
+  ${VISITS_BASE_SELECT},
+  patient_name,
+  patient_age,
+  patient_gender,
+  action_en,
+  action_ne,
+  recommendation_en,
+  recommendation_ne,
+  specialist_type
+`;
+
+function shouldRetryWithLegacyVisitQuery(error: { message?: string } | null) {
+  const message = error?.message?.toLowerCase() ?? '';
+
+  return (
+    message.includes('column') &&
+    (message.includes('action_en') ||
+      message.includes('action_ne') ||
+      message.includes('recommendation_en') ||
+      message.includes('recommendation_ne') ||
+      message.includes('specialist_type') ||
+      message.includes('patient_name') ||
+      message.includes('patient_age') ||
+      message.includes('patient_gender'))
+  );
+}
+
+function normalizeVisits(visits: VisitWithHouseholdRelation[] | null) {
+  return (visits ?? []).map((visit) => ({
+    ...visit,
+    households: Array.isArray(visit.households)
+      ? (visit.households[0] ?? { code: 'Unknown' })
+      : (visit.households ?? { code: 'Unknown' }),
+  }));
+}
+
 export async function GET() {
   try {
     // Authenticate user
@@ -67,46 +121,31 @@ export async function GET() {
     // Fetch visits for this CHW with household code (admin client bypasses RLS)
     const { data: visits, error: visitsError } = await admin
       .from('visits')
-      .select(`
-        id,
-        household_id,
-        chw_id,
-        visit_date,
-        patient_name,
-        patient_age,
-        patient_gender,
-        responses,
-        total_score,
-        risk_level,
-        explanation_en,
-        explanation_ne,
-        action_en,
-        action_ne,
-        recommendation_en,
-        recommendation_ne,
-        specialist_type,
-        notes,
-        created_at,
-        households (
-          code
-        )
-      `)
+      .select(VISITS_EXTENDED_SELECT)
       .eq('chw_id', user.id)
       .order('created_at', { ascending: false });
 
-    if (visitsError) {
+    if (visitsError && !shouldRetryWithLegacyVisitQuery(visitsError)) {
       console.error('Error fetching visits:', visitsError);
       return NextResponse.json({ error: 'Failed to load visits' }, { status: 500 });
     }
 
-    const normalizedVisits = ((visits as VisitWithHouseholdRelation[] | null) ?? []).map((visit) => ({
-      ...visit,
-      households: Array.isArray(visit.households)
-        ? (visit.households[0] ?? { code: 'Unknown' })
-        : (visit.households ?? { code: 'Unknown' }),
-    }));
+    if (visitsError) {
+      const { data: legacyVisits, error: legacyVisitsError } = await admin
+        .from('visits')
+        .select(VISITS_BASE_SELECT)
+        .eq('chw_id', user.id)
+        .order('created_at', { ascending: false });
 
-    return NextResponse.json({ visits: normalizedVisits });
+      if (legacyVisitsError) {
+        console.error('Error fetching visits:', legacyVisitsError);
+        return NextResponse.json({ error: 'Failed to load visits' }, { status: 500 });
+      }
+
+      return NextResponse.json({ visits: normalizeVisits(legacyVisits as VisitWithHouseholdRelation[] | null) });
+    }
+
+    return NextResponse.json({ visits: normalizeVisits(visits as VisitWithHouseholdRelation[] | null) });
   } catch (error) {
     console.error('Visits API error:', error);
     return NextResponse.json({ error: 'Failed to load visits' }, { status: 500 });
