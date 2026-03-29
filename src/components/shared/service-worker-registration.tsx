@@ -11,6 +11,7 @@ import { useEffect } from 'react';
 export function ServiceWorkerRegistration() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    let updateIntervalId: ReturnType<typeof setInterval> | null = null;
 
     // Only register in production or when explicitly enabled
     const shouldRegister =
@@ -48,7 +49,7 @@ export function ServiceWorkerRegistration() {
       // Handle service worker updates
       navigator.serviceWorker.ready.then((registration) => {
         // Check for updates every hour
-        setInterval(
+        updateIntervalId = setInterval(
           () => {
             registration.update().catch(console.error);
           },
@@ -56,6 +57,12 @@ export function ServiceWorkerRegistration() {
         );
       });
     }
+
+    return () => {
+      if (updateIntervalId) {
+        clearInterval(updateIntervalId);
+      }
+    };
   }, []);
 
   return null;

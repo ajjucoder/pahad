@@ -122,6 +122,22 @@ describe('NewVisitPage', () => {
     expect(mockGetSupabaseBrowserClient).not.toHaveBeenCalled();
   });
 
+  it('renders VisitForm when no households are returned so new household can be created in-form', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ households: [] }),
+    });
+
+    render(<NewVisitPage />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('visit-form')).toBeInTheDocument();
+    });
+
+    expect(screen.getByTestId('household-count')).toHaveTextContent('0 households');
+    expect(screen.queryByText('No households assigned')).not.toBeInTheDocument();
+  });
+
   it('shows an error when the API request fails', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: false,

@@ -32,7 +32,7 @@ export const scoreRequestSchema = z.object({
   responses: visitResponsesSchema,
   notes: z.string().max(1000).optional(),
   patient_name: z.string().optional(),
-  patient_age: z.coerce.number().optional(),
+  patient_age: z.coerce.number().int().min(0).max(150).optional(),
   patient_gender: z.enum(['Male', 'Female', 'Other']).optional(),
 });
 

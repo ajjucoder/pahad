@@ -293,12 +293,67 @@ describe('POST /api/score', () => {
       expect(response.status).toBe(422);
       expect(data.error).toBe('Validation failed');
     });
+
+    it('should return 422 when patient age is negative', async () => {
+      const request = new Request('http://localhost/api/score', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...validRequest,
+          patient_age: -1,
+        }),
+      });
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(422);
+      expect(data.error).toBe('Validation failed');
+    });
+
+    it('should return 422 when patient age is not an integer', async () => {
+      const request = new Request('http://localhost/api/score', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...validRequest,
+          patient_age: 24.5,
+        }),
+      });
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(422);
+      expect(data.error).toBe('Validation failed');
+    });
+
+    it('should return 422 when patient gender is invalid', async () => {
+      const request = new Request('http://localhost/api/score', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...validRequest,
+          patient_gender: 'Unknown',
+        }),
+      });
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(422);
+      expect(data.error).toBe('Validation failed');
+    });
   });
 
   describe('404 Household Not Found', () => {
     beforeEach(() => {
       mockGetUser.mockResolvedValue({
         data: { user: mockUser },
+        error: null,
+      });
+      mockSingle.mockResolvedValue({
+        data: mockProfile,
         error: null,
       });
     });
@@ -327,6 +382,10 @@ describe('POST /api/score', () => {
     beforeEach(() => {
       mockGetUser.mockResolvedValue({
         data: { user: mockUser },
+        error: null,
+      });
+      mockSingle.mockResolvedValue({
+        data: mockProfile,
         error: null,
       });
     });
@@ -403,6 +462,29 @@ describe('POST /api/score', () => {
 
       expect(response.status).toBe(403);
       expect(data.error).toBe('Only CHWs can submit visits');
+    });
+
+    it('should return 403 before checking household details', async () => {
+      mockSingle.mockResolvedValue({
+        data: { id: mockUser.id, role: 'supervisor' },
+        error: null,
+      });
+
+      const request = new Request('http://localhost/api/score', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...validRequest,
+          household_id: '123e4567-e89b-12d3-a456-426614174099',
+        }),
+      });
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(403);
+      expect(data.error).toBe('Only CHWs can submit visits');
+      expect(mockAdminFrom).not.toHaveBeenCalled();
     });
   });
 
@@ -509,6 +591,27 @@ describe('POST /api/score', () => {
 
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('visit_id');
+    });
+
+    it('should persist age 0 instead of dropping it to null', async () => {
+      const request = new Request('http://localhost/api/score', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...validRequest,
+          patient_age: 0,
+          patient_gender: 'Other',
+        }),
+      });
+
+      await POST(request);
+
+      expect(mockInsertVisitWithRiskUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          patient_age: 0,
+          patient_gender: 'Other',
+        })
+      );
     });
 
     it('should handle valid risk levels', async () => {

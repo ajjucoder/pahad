@@ -7,20 +7,20 @@ import { useAuth } from '@/providers/auth-provider';
 import { SupervisorSidebar } from '@/components/supervisor/sidebar';
 
 export default function SupervisorLayout({ children }: { children: React.ReactNode }) {
-  const { user, profile, application, loading } = useAuth();
+  const { user, profile, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     if (!loading) {
       if (!user) {
         router.push('/login');
-      } else if (!profile && application) {
+      } else if (!profile) {
         router.push('/create-account');
       } else if (profile?.role === 'chw') {
         router.push('/app');
       }
     }
-  }, [user, profile, application, loading, router]);
+  }, [user, profile, loading, router]);
 
   if (loading) {
     return (
@@ -30,7 +30,7 @@ export default function SupervisorLayout({ children }: { children: React.ReactNo
     );
   }
 
-  if (!user || profile?.role !== 'supervisor') {
+  if (!user || !profile || profile.role !== 'supervisor') {
     return null;
   }
 

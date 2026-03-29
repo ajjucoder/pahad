@@ -69,14 +69,6 @@ export default function NewVisitPage() {
     );
   }
 
-  if (households.length === 0) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-muted-foreground">{t('emptyStates.chwHome')}</p>
-      </div>
-    );
-  }
-
   return (
     <div>
       <h1 className="text-xl font-bold mb-6">{t('nav.newVisit')}</h1>

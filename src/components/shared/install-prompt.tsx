@@ -32,9 +32,23 @@ function getIsIOS(): boolean {
 }
 
 function getIsDismissed(): boolean {
-  if (typeof window === 'undefined') return false;
-  const dismissed = localStorage.getItem(DISMISSAL_KEY) ?? localStorage.getItem(LEGACY_DISMISSAL_KEY);
-  return dismissed ? Date.now() - parseInt(dismissed, 10) < DISMISSAL_DURATION : false;
+  try {
+    if (typeof window === 'undefined') return false;
+    const dismissed = localStorage.getItem(DISMISSAL_KEY) ?? localStorage.getItem(LEGACY_DISMISSAL_KEY);
+    return dismissed ? Date.now() - parseInt(dismissed, 10) < DISMISSAL_DURATION : false;
+  } catch {
+    return false;
+  }
+}
+
+function persistDismissal(timestamp: string) {
+  try {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(DISMISSAL_KEY, timestamp);
+    localStorage.removeItem(LEGACY_DISMISSAL_KEY);
+  } catch {
+    // Ignore storage failures in restricted browser contexts.
+  }
 }
 
 /**
@@ -108,9 +122,7 @@ export function InstallPrompt() {
 
   const handleDismiss = useCallback(() => {
     setShowPrompt(false);
-    const timestamp = Date.now().toString();
-    localStorage.setItem(DISMISSAL_KEY, timestamp);
-    localStorage.removeItem(LEGACY_DISMISSAL_KEY);
+    persistDismissal(Date.now().toString());
   }, []);
 
   // Don't show if already installed
