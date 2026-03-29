@@ -1,34 +1,141 @@
-# Pahad
+# Saveika
 
-Pahad is a mobile-first decision-support tool for community health workers in Nepal to record early behavioral warning signs, score household risk, and help supervisors review flagged households before crisis points.
+Saveika is a mobile-first mental health screening and escalation platform built for Community Health Workers (CHWs) and supervisors in Nepal. It helps field workers capture household visit signals, calculates mental health risk, and gives supervisors a clearer view of households that may need urgent follow-up.
 
-## Planned stack
+## What Saveika Does
+
+- Supports guided household visit intake for CHWs
+- Scores risk using Gemini with deterministic fallback logic
+- Helps supervisors review flagged households and field activity
+- Works in English and Nepali
+- Ships with seeded demo accounts for hackathon demos
+- Includes installable PWA support for mobile-first usage
+
+## Tech Stack
 
 - Next.js 16
+- React 19
+- TypeScript
 - Supabase Auth + Postgres + RLS
 - Tailwind CSS v4 + shadcn/ui
-- Gemini-based scoring with deterministic fallback
 - Leaflet + OpenStreetMap
-- PWA support for installable mobile usage
+- Vitest + Testing Library
 
-## Product scope
+## Repository Structure
 
-- CHW workflow for starting visits, completing the 8-signal screening form, and viewing visit history
-- Supervisor workflow for dashboards, flagged households, worker activity, and status updates
-- English and Nepali localization
-- Seeded demo accounts and demo data for hackathon use
+```text
+.
+├── public/              # Static assets, icons, team photos
+├── scripts/             # Database schema and seed utilities
+├── src/                 # App routes, UI components, libraries, tests
+├── supabase/            # Supabase migrations
+├── SAVEIKA_PRD.md       # Product requirements
+└── IMPLEMENTATION_PLAN.md
+```
 
-## Local development
+## Getting Started
 
-1. Install dependencies
-2. Run the database schema and seed scripts in Supabase
-3. Start the app with `npm run dev`
+### 1. Clone the repository
 
-Environment variables are expected in local env files managed outside source control.
+```bash
+git clone <your-github-repo-url>
+cd Saveika
+```
 
-## Status
+### 2. Install dependencies
 
-This repository is being implemented from the approved PRD and implementation plan in:
+```bash
+npm install
+```
 
-- `PAHAD_PRD.md`
+### 3. Configure environment variables
+
+Create `.env.local` from `.env.example`.
+
+```bash
+cp .env.example .env.local
+```
+
+Required variables:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+GEMINI_API_KEY=
+```
+
+### 4. Set up Supabase
+
+1. Apply `scripts/schema.sql`
+2. Apply the SQL files in `supabase/migrations/`
+3. Seed demo data:
+
+```bash
+npm run db:seed
+```
+
+### 5. Run the app
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000).
+
+## Available Scripts
+
+```bash
+npm run dev
+npm run build
+npm run start
+npm run lint
+npm run test
+npm run typecheck
+npm run db:seed
+```
+
+## Demo Accounts
+
+```text
+CHW:         chw1@demo.com / demo1234
+CHW:         chw2@demo.com / demo1234
+CHW:         chw3@demo.com / demo1234
+Supervisor:  supervisor@demo.com / demo1234
+```
+
+## Project Documents
+
+- `SAVEIKA_PRD.md`
 - `IMPLEMENTATION_PLAN.md`
+
+## Team
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="public/team/aejju-singh.png" alt="Aejju Singh" width="180" /><br />
+      <strong>Aejju Singh</strong>
+    </td>
+    <td align="center">
+      <img src="public/team/nabin-joshi.jpeg" alt="Nabin Joshi" width="180" /><br />
+      <strong>Nabin Joshi</strong>
+    </td>
+    <td align="center">
+      <img src="public/team/dipika.jpeg" alt="Dipika" width="180" /><br />
+      <strong>Dipika</strong>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="public/team/arnab.jpg" alt="Arnab" width="180" /><br />
+      <strong>Arnab</strong>
+    </td>
+    <td align="center">
+      <img src="public/team/karuna.jpg" alt="Karuna" width="180" /><br />
+      <strong>Karuna</strong>
+    </td>
+    <td></td>
+  </tr>
+</table>
