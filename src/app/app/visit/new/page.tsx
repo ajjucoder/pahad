@@ -69,10 +69,11 @@ export default function NewVisitPage() {
     );
   }
 
-  if (households.length === 0) {
+  if (households.length === 0 && !profile?.area_id) {
     return (
-      <div className="text-center py-12">
+      <div className="text-center py-12 space-y-2">
         <p className="text-muted-foreground">{t('emptyStates.chwHome')}</p>
+        <p className="text-sm text-muted-foreground">{t('visit.noAssignedArea')}</p>
       </div>
     );
   }

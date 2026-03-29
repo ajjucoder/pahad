@@ -99,7 +99,9 @@ export function ApplicationsClient({ applications }: ApplicationsClientProps) {
   };
 
   const handleReject = async (applicationId: string) => {
-    if (!rejectionReason.trim()) {
+    const normalizedReason = rejectionReason.trim();
+
+    if (!normalizedReason) {
       setError(t('applications.errors.reasonRequired'));
       return;
     }
@@ -113,7 +115,7 @@ export function ApplicationsClient({ applications }: ApplicationsClientProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           application_id: applicationId,
-          rejection_reason: rejectionReason,
+          rejection_reason: normalizedReason,
         }),
       });
 
@@ -177,7 +179,7 @@ export function ApplicationsClient({ applications }: ApplicationsClientProps) {
             className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-xl mb-4"
           >
             {error}
-            <button onClick={() => setError(null)} className="ml-2 font-bold">×</button>
+            <button type="button" onClick={() => setError(null)} className="ml-2 font-bold">×</button>
           </motion.div>
         )}
       </AnimatePresence>
@@ -253,6 +255,7 @@ export function ApplicationsClient({ applications }: ApplicationsClientProps) {
                       <Button
                         size="sm"
                         className="bg-[#5B7553] hover:bg-[#3D5235] text-white h-8 px-3 text-xs"
+                        type="button"
                         onClick={() => handleApprove(application.id)}
                         disabled={isProcessing}
                       >
@@ -269,6 +272,7 @@ export function ApplicationsClient({ applications }: ApplicationsClientProps) {
                         size="sm"
                         variant="outline"
                         className="h-8 px-3 text-xs border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                        type="button"
                         onClick={() => setShowRejectModal(application.id)}
                         disabled={isProcessing}
                       >
@@ -331,6 +335,7 @@ export function ApplicationsClient({ applications }: ApplicationsClientProps) {
                 <Button
                   variant="outline"
                   className="flex-1"
+                  type="button"
                   onClick={() => {
                     setShowRejectModal(null);
                     setRejectionReason('');
@@ -340,6 +345,7 @@ export function ApplicationsClient({ applications }: ApplicationsClientProps) {
                 </Button>
                 <Button
                   className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                  type="button"
                   onClick={() => handleReject(showRejectModal)}
                   disabled={processingId === showRejectModal}
                 >

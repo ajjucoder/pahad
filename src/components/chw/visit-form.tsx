@@ -74,7 +74,7 @@ export function VisitForm({ households }: VisitFormProps) {
   // Handle creating new household
   const handleCreateHousehold = async () => {
     if (!newHouseholdCode.trim() || !newHouseholdName.trim()) {
-      setError('Please fill in household code and name');
+      setError(t('visit.householdCodeAndNameRequired') || 'Please fill in household code and name');
       return;
     }
     
@@ -93,7 +93,7 @@ export function VisitForm({ households }: VisitFormProps) {
       
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Failed to create household');
+        throw new Error(data.error || t('visit.createHouseholdFailed') || 'Failed to create household');
       }
       
       const data = await res.json();
@@ -107,7 +107,9 @@ export function VisitForm({ households }: VisitFormProps) {
       setNewHouseholdName('');
       setIsDropdownOpen(false);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to create household';
+      const message = err instanceof Error
+        ? err.message
+        : t('visit.createHouseholdFailed') || 'Failed to create household';
       setError(message);
     } finally {
       setIsCreatingHousehold(false);
@@ -196,8 +198,14 @@ export function VisitForm({ households }: VisitFormProps) {
     setNewHouseholdName('');
   };
 
+  const genderOptions = [
+    { value: 'Male', label: t('visit.genderMale') || 'Male' },
+    { value: 'Female', label: t('visit.genderFemale') || 'Female' },
+    { value: 'Other', label: t('visit.genderOther') || 'Other' },
+  ] as const;
+
   // Get selected household details for mini summary
-  const selectedHouseholdDetails = households.find(hh => hh.id === selectedHousehold);
+  const selectedHouseholdDetails = householdList.find(hh => hh.id === selectedHousehold);
 
   // Show result after successful submission
   if (result) {
@@ -276,7 +284,7 @@ export function VisitForm({ households }: VisitFormProps) {
       {/* Patient Information Section - Refined Healthcare Design */}
       <div className="space-y-1">
         <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-sage-dark)]/70 px-1">
-          Patient Information
+          {t('visit.patientInfo') || 'Patient Information'}
         </h2>
         <Card className="border-0 shadow-md bg-gradient-to-br from-white via-[var(--color-ivory)]/30 to-white overflow-hidden">
           <CardContent className="p-0">
@@ -284,14 +292,14 @@ export function VisitForm({ households }: VisitFormProps) {
               {/* Full Name Field */}
               <div className="p-4 sm:p-5">
                 <label htmlFor="patientName" className="block text-[10px] font-medium uppercase tracking-wider text-muted-foreground/80 mb-2">
-                  Full Name
+                  {t('visit.patientFullName') || 'Full Name'}
                 </label>
                 <input
                   id="patientName"
                   type="text"
                   value={patientName}
                   onChange={(e) => setPatientName(e.target.value)}
-                  placeholder="Enter patient name"
+                  placeholder={t('visit.patientNamePlaceholder') || 'Enter patient name'}
                   className="w-full bg-transparent text-base font-medium placeholder:text-muted-foreground/40 focus:outline-none border-b-2 border-transparent focus:border-[var(--color-sage)] transition-colors pb-1"
                 />
               </div>
@@ -299,7 +307,7 @@ export function VisitForm({ households }: VisitFormProps) {
               {/* Age Field */}
               <div className="p-4 sm:p-5">
                 <label htmlFor="patientAge" className="block text-[10px] font-medium uppercase tracking-wider text-muted-foreground/80 mb-2">
-                  Age
+                  {t('visit.patientAge') || 'Age'}
                 </label>
                 <div className="flex items-end gap-2">
                   <input
@@ -312,30 +320,30 @@ export function VisitForm({ households }: VisitFormProps) {
                     placeholder="—"
                     className="w-20 bg-transparent text-2xl font-semibold placeholder:text-muted-foreground/30 focus:outline-none border-b-2 border-transparent focus:border-[var(--color-sage)] transition-colors pb-1 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
-                  <span className="text-sm text-muted-foreground/60 pb-1">years</span>
+                  <span className="text-sm text-muted-foreground/60 pb-1">{t('visit.years') || 'years'}</span>
                 </div>
               </div>
               
               {/* Gender Field */}
               <div className="p-4 sm:p-5">
                 <label className="block text-[10px] font-medium uppercase tracking-wider text-muted-foreground/80 mb-3">
-                  Gender
+                  {t('visit.patientGender') || 'Gender'}
                 </label>
                 <div className="flex gap-2">
-                  {['Male', 'Female', 'Other'].map((gender) => (
+                  {genderOptions.map((gender) => (
                     <button
-                      key={gender}
+                      key={gender.value}
                       type="button"
-                      onClick={() => setPatientGender(prev => prev === gender ? '' : gender)}
+                      onClick={() => setPatientGender(prev => prev === gender.value ? '' : gender.value)}
                       className={cn(
                         'flex-1 px-3 py-2 text-xs font-semibold rounded-lg transition-all duration-200',
                         'border-2',
-                        patientGender === gender
+                        patientGender === gender.value
                           ? 'bg-[var(--color-sage)] border-[var(--color-sage)] text-white shadow-sm'
                           : 'bg-transparent border-border/40 text-muted-foreground hover:border-[var(--color-sage)]/50 hover:text-foreground'
                       )}
                     >
-                      {gender}
+                      {gender.label}
                     </button>
                   ))}
                 </div>
@@ -390,7 +398,7 @@ export function VisitForm({ households }: VisitFormProps) {
                     className="flex-shrink-0 flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground bg-white hover:bg-muted/50 rounded-lg transition-all border border-border/50"
                   >
                     <X className="size-3" />
-                    Change
+                    {t('visit.changeHousehold') || 'Change'}
                   </button>
                 </div>
               </div>
@@ -410,7 +418,7 @@ export function VisitForm({ households }: VisitFormProps) {
                           setIsDropdownOpen(true);
                         }}
                         onFocus={() => setIsDropdownOpen(true)}
-                        placeholder="Search by code, name, or area..."
+                        placeholder={t('visit.searchHouseholdPlaceholder') || 'Search by code, name, or area...'}
                         className="w-full pl-10 pr-4 py-3 text-sm bg-muted/30 border-2 border-transparent focus:border-[var(--color-sage)]/50 rounded-xl outline-none transition-colors placeholder:text-muted-foreground/50"
                       />
                     </div>
@@ -450,19 +458,22 @@ export function VisitForm({ households }: VisitFormProps) {
                             })}
                             {filteredHouseholds.length > 8 && (
                               <div className="px-4 py-2 text-xs text-muted-foreground bg-muted/30 text-center">
-                                +{filteredHouseholds.length - 8} more households
+                                {(t('visit.moreHouseholds') || '+{count} more households').replace(
+                                  '{count}',
+                                  String(filteredHouseholds.length - 8)
+                                )}
                               </div>
                             )}
                           </>
                         ) : (
                           <div className="px-4 py-6 text-center">
-                            <p className="text-sm text-muted-foreground mb-2">No households found</p>
+                            <p className="text-sm text-muted-foreground mb-2">{t('visit.noHouseholdsFound') || 'No households found'}</p>
                             <button
                               type="button"
                               onClick={() => setShowNewHouseholdForm(true)}
                               className="text-sm text-[var(--color-sage)] font-medium hover:underline"
                             >
-                              Add new household
+                              {t('visit.addNewHousehold') || 'Add new household'}
                             </button>
                           </div>
                         )}
@@ -476,14 +487,14 @@ export function VisitForm({ households }: VisitFormProps) {
                       className="mt-3 w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-[var(--color-sage-dark)] bg-[var(--color-sage)]/10 hover:bg-[var(--color-sage)]/20 rounded-xl transition-colors"
                     >
                       <Plus className="size-4" />
-                      Add New Household
+                      {t('visit.addNewHouseholdCta') || 'Add New Household'}
                     </button>
                   </>
                 ) : (
                   /* New Household Form */
                   <div className="space-y-4">
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-sm font-semibold text-foreground">Create New Household</h3>
+                      <h3 className="text-sm font-semibold text-foreground">{t('visit.createNewHousehold') || 'Create New Household'}</h3>
                       <button
                         type="button"
                         onClick={() => {
@@ -500,7 +511,7 @@ export function VisitForm({ households }: VisitFormProps) {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-[10px] font-medium uppercase tracking-wider text-muted-foreground/80 mb-1.5">
-                          Household Code
+                          {t('visit.householdCodeLabel') || 'Household Code'}
                         </label>
                         <div className="relative">
                           <Hash className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
@@ -515,7 +526,7 @@ export function VisitForm({ households }: VisitFormProps) {
                       </div>
                       <div>
                         <label className="block text-[10px] font-medium uppercase tracking-wider text-muted-foreground/80 mb-1.5">
-                          Head of Household
+                          {t('visit.householdHeadLabel') || 'Head of Household'}
                         </label>
                         <div className="relative">
                           <User2 className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
@@ -523,7 +534,7 @@ export function VisitForm({ households }: VisitFormProps) {
                             type="text"
                             value={newHouseholdName}
                             onChange={(e) => setNewHouseholdName(e.target.value)}
-                            placeholder="Full name"
+                            placeholder={t('visit.fullNamePlaceholder') || 'Full name'}
                             className="w-full pl-9 pr-3 py-2.5 text-sm bg-muted/20 border border-border/50 focus:border-[var(--color-sage)] rounded-lg outline-none transition-colors"
                           />
                         </div>
@@ -540,7 +551,7 @@ export function VisitForm({ households }: VisitFormProps) {
                         }}
                         className="flex-1 px-4 py-2.5 text-sm font-medium text-muted-foreground bg-muted/30 hover:bg-muted/50 rounded-lg transition-colors"
                       >
-                        Cancel
+                        {t('common.cancel') || 'Cancel'}
                       </button>
                       <button
                         type="button"
@@ -551,12 +562,12 @@ export function VisitForm({ households }: VisitFormProps) {
                         {isCreatingHousehold ? (
                           <>
                             <Loader2 className="size-4 animate-spin" />
-                            Creating...
+                            {t('visit.creating') || 'Creating...'}
                           </>
                         ) : (
                           <>
                             <Plus className="size-4" />
-                            Create
+                            {t('visit.create') || 'Create'}
                           </>
                         )}
                       </button>

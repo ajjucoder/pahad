@@ -7,20 +7,20 @@ import { useAuth } from '@/providers/auth-provider';
 import { Loader2 } from 'lucide-react';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user, profile, application, loading } = useAuth();
+  const { user, profile, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     if (!loading) {
       if (!user) {
         router.push('/login');
-      } else if (!profile && application) {
+      } else if (!profile) {
         router.push('/create-account');
       } else if (profile?.role === 'supervisor') {
         router.push('/supervisor');
       }
     }
-  }, [user, profile, application, loading, router]);
+  }, [user, profile, loading, router]);
 
   if (loading) {
     return (
@@ -30,7 +30,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!user || profile?.role !== 'chw') {
+  if (!user || !profile || profile.role !== 'chw') {
     return null;
   }
 

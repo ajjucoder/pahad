@@ -208,4 +208,64 @@ describe('VisitForm - Explicit Answer Requirement', () => {
       wish_to_die: 0,
     });
   });
+
+  it('keeps the selected household summary visible after creating a new household', async () => {
+    const user = userEvent.setup();
+    const createdHousehold: Household = {
+      id: '123e4567-e89b-12d3-a456-426614174099',
+      code: 'HH-099',
+      head_name: 'New Household Head',
+      area_id: 'area-1',
+      assigned_chw_id: 'chw-1',
+      latest_risk_score: 0,
+      latest_risk_level: 'low',
+      status: 'active',
+      created_at: '2024-01-02T00:00:00Z',
+      area_name: 'Kathmandu',
+      area_name_ne: 'काठमाडौं',
+    };
+
+    mockFetch.mockImplementation((input, init) => {
+      if (input === '/api/households' && init?.method === 'POST') {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ household: createdHousehold }),
+        });
+      }
+
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          visit_id: 'visit-1',
+          score: 0,
+          risk_level: 'low',
+          explanation_en: 'Test explanation',
+          explanation_ne: 'Test explanation NE',
+          scoring_method: 'fallback',
+        }),
+      });
+    });
+
+    renderVisitForm();
+
+    await user.click(screen.getByRole('button', { name: 'Add New Household' }));
+    await user.type(screen.getByPlaceholderText('e.g., HH-001'), 'HH-099');
+    await user.type(screen.getByPlaceholderText('Full name'), 'New Household Head');
+    await user.click(screen.getByRole('button', { name: 'Create' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('HH-099')).toBeInTheDocument();
+      expect(screen.getByText('New Household Head')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Change' })).toBeInTheDocument();
+    });
+
+    const createCall = mockFetch.mock.calls.find(
+      ([url, requestInit]) => url === '/api/households' && requestInit?.method === 'POST'
+    );
+    expect(createCall).toBeDefined();
+    expect(JSON.parse(createCall![1].body as string)).toEqual({
+      code: 'HH-099',
+      head_name: 'New Household Head',
+    });
+  });
 });

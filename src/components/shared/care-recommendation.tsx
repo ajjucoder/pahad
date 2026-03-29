@@ -1,7 +1,6 @@
 'use client';
 
 import { Card, CardContent } from '@/components/ui/card';
-import { RISK_COLORS } from '@/lib/constants';
 import { useLanguage } from '@/providers/language-provider';
 import type { RiskLevel, SpecialistType } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -184,7 +183,6 @@ const SPECIALIST_CONFIG: Record<SpecialistType, { icon: typeof Stethoscope; labe
 
 export function CareRecommendation({
   level,
-  score: _score,
   className,
   compact = false,
   showTitle = true,

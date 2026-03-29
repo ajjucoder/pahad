@@ -45,32 +45,7 @@ export async function POST(request: Request) {
     }
     const { household_id, responses, notes, patient_name, patient_age, patient_gender } = validateOrThrow(scoreRequestSchema, body);
 
-    // Use admin client to check household existence and ownership
-    // This bypasses RLS so we can distinguish between "not found" and "not authorized"
-    const admin = getSupabaseAdminClient();
-    const { data: household, error: householdError } = await admin
-      .from('households')
-      .select('id, assigned_chw_id')
-      .eq('id', household_id)
-      .single<HouseholdSelect>();
-
-    if (householdError || !household) {
-      // Household does not exist - return 404
-      return NextResponse.json(
-        { error: 'Household not found' },
-        { status: 404 }
-      );
-    }
-
-    if (household.assigned_chw_id !== user.id) {
-      // Household exists but not assigned to this user - return 403
-      return NextResponse.json(
-        { error: 'Household not assigned to you' },
-        { status: 403 }
-      );
-    }
-
-    // Get user profile to verify CHW role (use server client for RLS-protected profile)
+    // Verify CHW role before checking household details so non-CHWs cannot probe assignments.
     const supabase = await getSupabaseServerClient();
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
@@ -81,6 +56,29 @@ export async function POST(request: Request) {
     if (profileError || !profile || profile.role !== 'chw') {
       return NextResponse.json(
         { error: 'Only CHWs can submit visits' },
+        { status: 403 }
+      );
+    }
+
+    // Use admin client to check household existence and ownership
+    // This bypasses RLS so CHWs still get actionable 404/403 responses.
+    const admin = getSupabaseAdminClient();
+    const { data: household, error: householdError } = await admin
+      .from('households')
+      .select('id, assigned_chw_id')
+      .eq('id', household_id)
+      .single<HouseholdSelect>();
+
+    if (householdError || !household) {
+      return NextResponse.json(
+        { error: 'Household not found' },
+        { status: 404 }
+      );
+    }
+
+    if (household.assigned_chw_id !== user.id) {
+      return NextResponse.json(
+        { error: 'Household not assigned to you' },
         { status: 403 }
       );
     }
@@ -104,7 +102,7 @@ export async function POST(request: Request) {
       recommendation_ne: scoreResult.recommendation_ne || '',
       specialist_type: scoreResult.specialist_type || null,
       patient_name: patient_name || null,
-      patient_age: patient_age || null,
+      patient_age: patient_age ?? null,
       patient_gender: patient_gender || null,
       notes: notes || null,
     });
